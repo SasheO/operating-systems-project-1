@@ -24,7 +24,7 @@ extern char **environ;
 char command_line[MAX_COMMAND_LINE_LEN];
 char cmd_bak[MAX_COMMAND_LINE_LEN];
 
-// cite trim, ltrim and rtrim from https://stackoverflow.com/questions/656542/trim-a-string-in-c
+// TODO: cite trim, ltrim and rtrim from https://stackoverflow.com/questions/656542/trim-a-string-in-c
 char *ltrim(char *s)
 {
     while(isspace(*s)) s++;
@@ -39,10 +39,35 @@ char *rtrim(char *s)
     return s;
 }
 
-void trim_command_line() // get rid of any white trailing white space and beginning or end
+void trimCommandLine() // get rid of any white trailing white space and beginning or end
 {
     char* trimmed_command = rtrim(ltrim(command_line));
     strcpy(command_line, trimmed_command);
+}
+
+// TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
+bool startsWith(const char *a, const char *b)
+{
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
+// TODO: cite sliceString https://medium.com/@kkhicher1/how-to-slice-string-in-c-language-7a5fd3a5db46
+char *sliceString(char *str, int start, int end)
+{
+
+    int i;
+    int size = (end - start) + 2;
+    char *output = (char *)malloc(size * sizeof(char));
+
+    for (i = 0; start <= end; start++, i++)
+    {
+        output[i] = str[start];
+    }
+
+    output[size] = '\0';
+
+    return output;
 }
 
 int main() { 
@@ -66,12 +91,23 @@ int main() {
                 exit(0);
             }
 
-            trim_command_line();
-            
+            trimCommandLine();
+
+            // TODO: implement cd. check if cd is the first argument then there's another argument
             if (strcmp(command_line,"pwd") == 0){
                 printf("%s\n", current_dir);
             }
-            // TODO: implement cd. check if cd is the first argument then there's another argument
+            // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
+            if (startsWith(command_line, "echo ")){
+              // TODO: implement basic echo printing whatever comes after echo
+              printf("%s\n", sliceString(command_line, strlen("echo "), strlen(command_line)));
+            }
+            if (strcmp(command_line,"exit") == 0){
+                return 0;
+            }
+            // TODO: implement env
+            // TODO: implement setenv
+            
  
         }while(command_line[0] == 0x0A);  // while just ENTER pressed
 
