@@ -75,7 +75,7 @@ int main() {
     char *arguments[MAX_COMMAND_LINE_ARGS];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
-    char * new_dir; // for cd
+    char * current_arg; // for cd
     
     	
     while (true) {
@@ -114,26 +114,28 @@ int main() {
             // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
             
             if (strcmp(token,"cd") == 0){ // TODO: implement more compled cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
-                new_dir = strtok(NULL, token_delimiter);
-                if (chdir(new_dir) != 0) {
-                    printf("%s is not a valid directory\n", new_dir); 
+                current_arg = strtok(NULL, token_delimiter); 
+                if (chdir(current_arg) != 0) {
+                    printf("%s is not a valid directory\n", current_arg); 
                 }     
             }
 
-            if (strcmp(token,"pwd") == 0){ // TODO: implement pwd flags
+            else if (strcmp(token,"pwd") == 0){ // TODO: implement pwd flags
                 printf("%s\n", current_dir);
             }
 
-            if (strcmp(token,"echo") == 0){
+            else if (strcmp(token,"echo") == 0){
               // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
-              /* TODO: follow instructions 
-              to  implement echo, 
-              write a loop that runs over 
-              the command arguments to print 
-              the string values.*/
-              printf("%s\n", sliceString(command_line, strlen("echo "), strlen(command_line)));
+              token = strtok(NULL, token_delimiter);
+              while (token){ // TODO: fix error that after the last token is printed, it appends a space " " due to implementation
+                printf("%s ", token);
+                token = strtok(NULL, token_delimiter);
+              }
+              
+              printf("\n");
+              
             }
-            if (strcmp(token,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
+            else if (strcmp(token,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
                 return 0;
             }
             /* TODO: implement env
@@ -147,7 +149,15 @@ int main() {
             the second pair, and so on until you hit 
             a terminating NULL string.
             */
+            else if (strcmp(token,"env") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
+                return 0;
+            }
             // TODO: implement setenv
+            else if (strcmp(token,"setenv") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
+                return 0;
+            }
+            
+            
             
  
         }while(command_line[0] == 0x0A);  // while just ENTER pressed
