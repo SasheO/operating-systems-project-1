@@ -99,7 +99,6 @@ int main() {
             }
             // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
             if (startsWith(command_line, "echo ")){
-              // TODO: implement basic echo printing whatever comes after echo
               printf("%s\n", sliceString(command_line, strlen("echo "), strlen(command_line)));
             }
             if (strcmp(command_line,"exit") == 0){
