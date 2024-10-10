@@ -73,14 +73,14 @@ char *sliceString(char *str, int start, int end)
 int main() { 
     // Stores the tokenized command line input.
     int i; // for for loops
-    char *arguments[MAX_COMMAND_LINE_ARGS];
+    char arguments[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
     char * current_arg; // for cd
+    char * command; // for cd
     
     	
     while (true) {
-      
         do{ 
             // Print the shell prompt.
             getcwd(current_dir, MAX_COMMAND_LINE_LEN);
@@ -99,68 +99,55 @@ int main() {
             
             command_line_copy = trimString(command_line); 
             strcpy(command_line, command_line_copy);
-            token = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
-
-            /*
-                while (token) {
-            printf("%s\n", token);
-            token = strtok(NULL, token_delimiter);
-        }
- 
- */
+            command = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
+            current_arg = strtok(NULL, token_delimiter);
+            i = 0;
             
+                while (current_arg) {
+                    strcpy(arguments[i], current_arg);
+                    i++;
+                    current_arg = strtok(NULL, token_delimiter);
+                }
+                strcpy(arguments[i], "\0");
             
-            // TODO: parse command_line input into flags where necessary https://www.geeksforgeeks.org/string-tokenization-in-c/
-
             // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
             
-            if (strcmp(token,"cd") == 0){ // TODO: implement more compled cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
+            if (strcmp(command,"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
                 current_arg = strtok(NULL, token_delimiter); 
                 if (chdir(current_arg) != 0) {
                     printf("%s is not a valid directory\n", current_arg); 
                 }     
             }
 
-            else if (strcmp(token,"pwd") == 0){ // TODO: implement pwd flags
+            else if (strcmp(command,"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
                 printf("%s\n", current_dir);
             }
 
-            else if (strcmp(token,"echo") == 0){
+            else if (strcmp(command,"echo") == 0){
               // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
               token = strtok(NULL, token_delimiter);
-              while (token){ // TODO: fix error that after the last token is printed, it appends a space " " due to implementation
-                printf("%s ", token);
-                token = strtok(NULL, token_delimiter);
+              for (i=0; strcmp(arguments[i],"\0") != 0; i++){
+                printf("%s ", arguments[i]);
               }
-              
               printf("\n");
               
             }
-            else if (strcmp(token,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
+            else if (strcmp(command,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
                 return 0;
             }
-            /* TODO: implement env
-            To implement env, you need to access to 
-            the global environment variables array. 
-            To this end, add the following declaration 
-            to your code: extern char **environ; 
-            (see manual pages for environ) For example, 
-            environ[0] contains the first variable 
-            name=value pair, environ[1] contains 
-            the second pair, and so on until you hit 
-            a terminating NULL string.
-            */
-            else if (strcmp(token,"env") == 0){ // TODO: check if any flags are given or the syntax is right
+            else if (strcmp(command,"env") == 0){ // TODO: implement env flags
                 for (i=0; environ[i]!=NULL; i++) {
                     printf("%d: %s\n", i, environ[i]);
                 }
             }
             // TODO: implement setenv
-            else if (strcmp(token,"setenv") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
+            else if (strcmp(command,"export") == 0){ // TODO: implement flags for export (set environment variables). 
+                
+                token = strtok(command_line_copy, token_delimiter);
                 return 0;
             }
  
-        }while(command_line[0] == 0x0A);  // while just ENTER pressed
+        } while(command_line[0] == 0x0A);  // while just ENTER pressed
 
       
         // If the user input was EOF (ctrl+d), exit the shell.
