@@ -72,6 +72,7 @@ char *sliceString(char *str, int start, int end)
 
 int main() { 
     // Stores the tokenized command line input.
+    int i; // for for loops
     char *arguments[MAX_COMMAND_LINE_ARGS];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
@@ -149,16 +150,15 @@ int main() {
             the second pair, and so on until you hit 
             a terminating NULL string.
             */
-            else if (strcmp(token,"env") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
-                return 0;
+            else if (strcmp(token,"env") == 0){ // TODO: check if any flags are given or the syntax is right
+                for (i=0; environ[i]!=NULL; i++) {
+                    printf("%d: %s\n", i, environ[i]);
+                }
             }
             // TODO: implement setenv
             else if (strcmp(token,"setenv") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
                 return 0;
             }
-            
-            
-            
  
         }while(command_line[0] == 0x0A);  // while just ENTER pressed
 
