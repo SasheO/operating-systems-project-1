@@ -22,6 +22,7 @@ char delimiters[] = " \t\r\n";
 extern char **environ;
 // Stores the string typed into the command line.
 char command_line[MAX_COMMAND_LINE_LEN];
+char* token;
 char cmd_bak[MAX_COMMAND_LINE_LEN];
 
 // TODO: cite trim, ltrim and rtrim from https://stackoverflow.com/questions/656542/trim-a-string-in-c
@@ -39,10 +40,9 @@ char *rtrim(char *s)
     return s;
 }
 
-void trimCommandLine() // get rid of any white trailing white space and beginning or end
+char* trimString(char * s) // get rid of any white trailing white space and beginning or end
 {
-    char* trimmed_command = rtrim(ltrim(command_line));
-    strcpy(command_line, trimmed_command);
+    return rtrim(ltrim(command_line));
 }
 
 // TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
@@ -73,6 +73,10 @@ char *sliceString(char *str, int start, int end)
 int main() { 
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
+    char* command_line_copy; // for trimming command_line input string of trailing spaces
+    char token_delimiter[] = " ";
+    char * new_dir; // for cd
+    
     	
     while (true) {
       
@@ -91,27 +95,58 @@ int main() {
                 exit(0);
             }
 
-            trimCommandLine();
-
-            // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself
             
-            // TODO: implement more compled cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
-            if (startsWith(command_line, "cd ")){
-              char * new_dir = sliceString(command_line, strlen("cd "), strlen(command_line));
-              if (chdir(new_dir) != 0) 
-                printf("%s is not a valid directory\n", new_dir); 
+            command_line_copy = trimString(command_line); 
+            strcpy(command_line, command_line_copy);
+            token = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
+
+            /*
+                while (token) {
+            printf("%s\n", token);
+            token = strtok(NULL, token_delimiter);
+        }
+ 
+ */
+            
+            
+            // TODO: parse command_line input into flags where necessary https://www.geeksforgeeks.org/string-tokenization-in-c/
+
+            // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
+            
+            if (strcmp(token,"cd") == 0){ // TODO: implement more compled cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
+                new_dir = strtok(NULL, token_delimiter);
+                if (chdir(new_dir) != 0) {
+                    printf("%s is not a valid directory\n", new_dir); 
+                }     
             }
-            if (strcmp(command_line,"pwd") == 0){
+
+            if (strcmp(token,"pwd") == 0){ // TODO: implement pwd flags
                 printf("%s\n", current_dir);
             }
-            // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
-            if (startsWith(command_line, "echo ")){
+
+            if (strcmp(token,"echo") == 0){
+              // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
+              /* TODO: follow instructions 
+              to  implement echo, 
+              write a loop that runs over 
+              the command arguments to print 
+              the string values.*/
               printf("%s\n", sliceString(command_line, strlen("echo "), strlen(command_line)));
             }
-            if (strcmp(command_line,"exit") == 0){
+            if (strcmp(token,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end top
                 return 0;
             }
-            // TODO: implement env
+            /* TODO: implement env
+            To implement env, you need to access to 
+            the global environment variables array. 
+            To this end, add the following declaration 
+            to your code: extern char **environ; 
+            (see manual pages for environ) For example, 
+            environ[0] contains the first variable 
+            name=value pair, environ[1] contains 
+            the second pair, and so on until you hit 
+            a terminating NULL string.
+            */
             // TODO: implement setenv
             
  
