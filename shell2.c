@@ -93,7 +93,14 @@ int main() {
 
             trimCommandLine();
 
-            // TODO: implement cd. check if cd is the first argument then there's another argument
+            // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself
+            
+            // TODO: implement more compled cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
+            if (startsWith(command_line, "cd ")){
+              char * new_dir = sliceString(command_line, strlen("cd "), strlen(command_line));
+              if (chdir(new_dir) != 0) 
+                printf("%s is not a valid directory\n", new_dir); 
+            }
             if (strcmp(command_line,"pwd") == 0){
                 printf("%s\n", current_dir);
             }
