@@ -71,9 +71,14 @@ char *sliceString(char *str, int start, int end)
     return output;
 }
 
+int nonBuiltInCommand(char * command){
+return 0;
+}
+
 int main() { 
     // Stores the tokenized command line input.
     int i,m; // for for loops
+    pid_t  pid, child_pid;
     char arguments[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
@@ -209,6 +214,18 @@ int main() {
             if (i!=0){
               printf("Error occured: %d\n", i);
             }
+            }
+            else{ // if not built-in command, fork a process
+                pid = fork();
+                if (pid<0){
+                  printf("Error forking\n");
+                else if (pid==0){ // child process
+                  i = nonBuiltInCommand(command);
+                }
+                else{
+                  // parent process
+                }
+                }
             }
  
         } while(command_line[0] == 0x0A);  // while just ENTER pressed
