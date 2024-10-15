@@ -48,6 +48,7 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
+    char * environment_variable,environment_variable_value;
   
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
@@ -105,6 +106,36 @@ int main() {
               }
           
           }
+        }
+        else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
+          printf("%s\n", current_dir);
+        }
+        else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
+          printf("%s", arguments[1]);
+          for (i=2;arguments[i]!=NULL; i++){
+            printf(" %s", arguments[i]);
+          }
+          printf("\n");
+        }
+        else if (strcmp(arguments[0],"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
+          exit(0);
+        }
+        else if (strcmp(arguments[0],"env") == 0){
+          if (arguments[1]!=NULL){
+            environment_variable = getenv(arguments[1]);
+          }
+          else{
+            for (i=0; environ[i]!=NULL; i++) {
+              printf("%d: %s\n", i, environ[i]);
+            }
+          }
+        }
+        else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ // TODO: implement flags for export (set environment variables). 
+          // get the environment_variable name and environment_variable_value
+          if (arguments[1]!=NULL){
+            environment_variable_value = strchr(arguments[i], '=');
+          }
+          
         }
         // TODO:
         // 
