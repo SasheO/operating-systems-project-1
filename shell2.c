@@ -82,7 +82,6 @@ int main() {
     char * current_arg2; // for cd
     char * command;
     char equals_sign_char = '=';
-    char *arguments[MAX_COMMAND_LINE_ARGS];
     char * commands_to_not_tokenize [] = { "export"}; // commands to not tokenize because tokenizing by spacing will cause issues
     
     	
@@ -106,15 +105,15 @@ int main() {
             command_line_copy = trimString(command_line); 
             strcpy(command_line, command_line_copy);
             command = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
-            current_arg = strtok(NULL, token_delimiter);
+            current_arg = strtok(NULL, token_delimiter);            
             // printf("command_line and copy after memcpy: %s ;;; %s\n", command_line, command_line_copy);
-            
             for (i=0; i<sizeof(commands_to_not_tokenize)/sizeof(char*); i++){
                 if (strcmp(command, commands_to_not_tokenize[i])==0){
                     i=-1;
                     break;
                 }
             }
+            
 
             if (i!=-1){
                 i = 0;
@@ -137,7 +136,7 @@ int main() {
                     }
                     strcpy(arguments_for_built_in_commands[i], "\0");
             }
-            
+
             
             // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
             
