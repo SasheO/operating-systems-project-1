@@ -69,6 +69,7 @@ int main() {
     int i, j;
     char * environment_variable;
     char * environment_variable_value;
+    pid_t  pid;
   
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
@@ -177,6 +178,18 @@ int main() {
             }
           }
           
+        }
+        else{
+          pid = fork();
+          if (pid < 0){
+            printf("Error forking\n");
+          }
+          else if (pid>0){ // parent process
+            wait(NULL);
+          }
+          else{ // child process
+            i = execvp(arguments[0], arguments);
+          }
         }
         // TODO:
         // 
