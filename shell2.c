@@ -116,9 +116,21 @@ int main() {
             if (i!=-1){
                 i = 0;
                     while (current_arg) {
+                      if (startsWith(current_arg, "$")){
+                        current_arg2 = getenv(sliceString(current_arg,1,strlen(current_arg)));
+                        if (current_arg2==0){
+                          strcpy(arguments[i], "");
+                        }
+                        else{
+                          strcpy(arguments[i], current_arg2);
+                        }
+                      }
+                      else{
                         strcpy(arguments[i], current_arg);
-                        i++;
-                        current_arg = strtok(NULL, token_delimiter);
+                      }
+                        
+                      i++;
+                      current_arg = strtok(NULL, token_delimiter);
                     }
                     strcpy(arguments[i], "\0");
             }
@@ -155,14 +167,7 @@ int main() {
               // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
               token = strtok(NULL, token_delimiter);
               for (i=0; strcmp(arguments[i],"\0") != 0; i++){
-                if (startsWith(arguments[i], "$")){
-                  // TODO: print the corresponding environment variable
-                  current_arg = getenv(sliceString(arguments[i],1,strlen(arguments[i])));
-                  printf("%s ", current_arg);         
-                }
-                else{
                   printf("%s ", arguments[i]);                  
-                }
               }
               printf("\n");
               
@@ -175,7 +180,9 @@ int main() {
                 m=0; 
                 for (i=0; strcmp(arguments[i],"\0") != 0; i++){ // print specific environment varibales
                   current_arg = getenv(arguments[i]);
-                  printf("%s\n", current_arg);     
+                  if (current_arg!=0){ // error handling
+                    printf("%s\n", current_arg);     
+                  }
                   m=-1;    
                 }
                 if (m!=-1){ // print all environment variables if none specific was given as argument
