@@ -106,7 +106,14 @@ int main() {
 
         while (p != NULL)
         {
+          if (!startsWith(p, "$")){ // if token not a variable
             arguments[i++] = trimString(p);
+          }
+          else{ // if token is a variable
+            p = getenv(trimString(sliceString(p, 1, strlen(p))));
+            arguments[i++] = p;
+          }
+            
             p = strtok (NULL, token_delimiter);
         }
 
@@ -142,7 +149,10 @@ int main() {
         }
         else if (strcmp(arguments[0],"env") == 0){
           if (arguments[1]!=NULL){
-            environment_variable = getenv(arguments[1]);
+            environment_variable_value = getenv(arguments[1]);
+            if (environment_variable_value!=0){
+              printf("%s\n", environment_variable_value);
+            }
           }
           else{
             for (i=0; environ[i]!=NULL; i++) {
