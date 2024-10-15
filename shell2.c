@@ -82,6 +82,7 @@ int main() {
     char * current_arg2; // for cd
     char * command;
     char equals_sign_char = '=';
+    char *arguments[MAX_COMMAND_LINE_ARGS];
     char * commands_to_not_tokenize [] = { "export"}; // commands to not tokenize because tokenizing by spacing will cause issues
     
     	
@@ -175,7 +176,7 @@ int main() {
               
             }
             else if (strcmp(command,"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
-                return 0;
+                exit(0);
             }
             else if (strcmp(command,"env") == 0){ // TODO: implement env flags
             // TODO: print the environment variable when a label is given
