@@ -76,8 +76,11 @@ int main() {
     char arguments[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
-    char * current_arg; // for cd
-    char * command; // for cd
+    char * current_arg; 
+    char * current_arg2; // for cd
+    char * command;
+    int setenv_equals_index;
+    char equals_sign_char = '=';
     
     	
     while (true) {
@@ -112,11 +115,27 @@ int main() {
             
             // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
             
+            /*
+            cd: changes the current working directory
+            pwd: prints the current working directory
+            setenv: sets an environment variable
+            */
             if (strcmp(command,"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
-                current_arg = strtok(NULL, token_delimiter); 
-                if (chdir(current_arg) != 0) {
-                    printf("%s is not a valid directory\n", current_arg); 
-                }     
+                for (i=0; strcmp(arguments[i],"\0") != 0; i++){ // get directory from arguments
+                    if (!startsWith(arguments[i], "-")){
+                        current_arg = arguments[i];
+                        break;
+                    }
+                }
+                if (!startsWith(current_arg, "-")){ // if not a flag
+                    if (chdir(current_arg) != 0) { // try changing directory
+                        printf("%s is not a valid directory\n", current_arg);
+                    }
+                
+                }
+                else{
+                    // deal with flags
+                }
             }
 
             else if (strcmp(command,"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
@@ -142,9 +161,36 @@ int main() {
             }
             // TODO: implement setenv
             else if (strcmp(command,"export") == 0){ // TODO: implement flags for export (set environment variables). 
-                
-                token = strtok(command_line_copy, token_delimiter);
-                return 0;
+            // TODO: export VAR="my value" can have spaces, meaning the tokenization is tricky here. how to do this?
+                // current_arg = strchr(arguments[0], "=" );
+                // printf("%s", arguments[0]);
+                // printf("%s\n", current_arg);
+                // check if one and only one = is in next token, export
+            //     for (i=0; strcmp(arguments[i],"\0") != 0; i++){
+            //     printf("%s\n", arguments[i]);
+            //   }
+              setenv_equals_index = 0;
+              for (i=0; i==strlen(arguments[0]); i++){
+                printf("%d %c\n",4, arguments[0][i]);
+                if (arguments[0][i]==equals_sign_char){
+                    printf("%d %c\n",3, arguments[0][i]);
+                    if (setenv_equals_index!=0){
+                        printf("1 Invalid syntax\n");
+
+                    }
+                    else{
+                        setenv_equals_index = i;
+                    }
+                }
+              }
+                if (setenv_equals_index == 0){
+                    printf("2 Invalid syntax\n");
+                }
+                else{
+                    current_arg2 = sliceString(arguments[0], 0, setenv_equals_index);
+                    current_arg2 = sliceString(arguments[0], setenv_equals_index, strlen(arguments[0]));
+                }
+              
             }
  
         } while(command_line[0] == 0x0A);  // while just ENTER pressed
