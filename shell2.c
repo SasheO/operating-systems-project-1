@@ -81,7 +81,7 @@ int main() {
     char * current_arg2; // for cd
     char * command;
     char equals_sign_char = '=';
-    char * commands_to_not_tokenize [] = { "setenv"}; // commands to not tokenize because tokenizing by spacing will cause issues
+    char * commands_to_not_tokenize [] = { "export"}; // commands to not tokenize because tokenizing by spacing will cause issues
     
     	
     while (true) {
@@ -113,7 +113,7 @@ int main() {
                 }
             }
 
-            if (i==-1){
+            if (i!=-1){
                 i = 0;
                     while (current_arg) {
                         strcpy(arguments[i], current_arg);
@@ -155,7 +155,14 @@ int main() {
               // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
               token = strtok(NULL, token_delimiter);
               for (i=0; strcmp(arguments[i],"\0") != 0; i++){
-                printf("%s ", arguments[i]);
+                if (startsWith(arguments[i], "$")){
+                  // TODO: print the corresponding environment variable
+                  current_arg = getenv(sliceString(arguments[i],1,strlen(arguments[i])));
+                  printf("%s ", current_arg);         
+                }
+                else{
+                  printf("%s ", arguments[i]);                  
+                }
               }
               printf("\n");
               
@@ -164,12 +171,14 @@ int main() {
                 return 0;
             }
             else if (strcmp(command,"env") == 0){ // TODO: implement env flags
+            // TODO: print the environment variable when a label is given
+            
                 for (i=0; environ[i]!=NULL; i++) {
                     printf("%d: %s\n", i, environ[i]);
                 }
             }
             // TODO: implement setenv
-            else if (strcmp(command,"setenv") == 0){ // TODO: implement flags for setenv (set environment variables). 
+            else if (strcmp(command,"export") == 0){ // TODO: implement flags for export (set environment variables). 
             command = sliceString(command_line_copy, 0, strlen(command));
             command_line_copy[strlen(command_line_copy)] = ' ';
             // current_arg = trimString(sliceString(command_line_copy, strlen(command), strlen(command_line_copy)));
