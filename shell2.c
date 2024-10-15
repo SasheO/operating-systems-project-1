@@ -73,7 +73,7 @@ char *sliceString(char *str, int start, int end)
 
 int main() { 
     // Stores the tokenized command line input.
-    int i; // for for loops
+    int i,m; // for for loops
     char arguments[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
@@ -172,10 +172,18 @@ int main() {
             }
             else if (strcmp(command,"env") == 0){ // TODO: implement env flags
             // TODO: print the environment variable when a label is given
-            
-                for (i=0; environ[i]!=NULL; i++) {
-                    printf("%d: %s\n", i, environ[i]);
+                m=0; 
+                for (i=0; strcmp(arguments[i],"\0") != 0; i++){ // print specific environment varibales
+                  current_arg = getenv(arguments[i]);
+                  printf("%s\n", current_arg);     
+                  m=-1;    
                 }
+                if (m!=-1){ // print all environment variables if none specific was given as argument
+                  for (i=0; environ[i]!=NULL; i++) {
+                    printf("%d: %s\n", i, environ[i]);
+                  }
+                }
+                
             }
             // TODO: implement setenv
             else if (strcmp(command,"export") == 0){ // TODO: implement flags for export (set environment variables). 
