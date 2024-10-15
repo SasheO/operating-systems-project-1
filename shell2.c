@@ -123,7 +123,7 @@ int main() {
 
         if (strcmp(arguments[0],"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
-              if (!startsWith(arguments[i], "-")){
+              if (!startsWith(arguments[i], "-")){ 
                   target_directory = arguments[i];
                   break;
               }
@@ -185,7 +185,11 @@ int main() {
             printf("Error forking\n");
           }
           else if (pid>0){ // parent process
-            wait(NULL);
+            for (i=0; arguments[i]!=NULL; i++){} // get i to be length of arguments array
+            if (trimString(arguments[i-1])!="&"){ // only wait for child process to end if command does not end with &
+              // wait(NULL);
+            }
+            
           }
           else{ // child process
             i = execvp(arguments[0], arguments);
