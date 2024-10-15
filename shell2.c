@@ -71,15 +71,11 @@ char *sliceString(char *str, int start, int end)
     return output;
 }
 
-int nonBuiltInCommand(char * command){
-return 0;
-}
-
 int main() { 
     // Stores the tokenized command line input.
     int i,m; // for for loops
     pid_t  pid, child_pid;
-    char arguments[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
+    char arguments_for_built_in_commands[MAX_COMMAND_LINE_ARGS][MAX_COMMAND_LINE_LEN];
     char* command_line_copy; // for trimming command_line input string of trailing spaces
     char token_delimiter[] = " ";
     char * current_arg; 
@@ -110,6 +106,7 @@ int main() {
             strcpy(command_line, command_line_copy);
             command = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
             current_arg = strtok(NULL, token_delimiter);
+            // printf("command_line and copy after memcpy: %s ;;; %s\n", command_line, command_line_copy);
             
             for (i=0; i<sizeof(commands_to_not_tokenize)/sizeof(char*); i++){
                 if (strcmp(command, commands_to_not_tokenize[i])==0){
@@ -124,20 +121,20 @@ int main() {
                       if (startsWith(current_arg, "$")){
                         current_arg2 = getenv(sliceString(current_arg,1,strlen(current_arg)));
                         if (current_arg2==0){
-                          strcpy(arguments[i], "");
+                          strcpy(arguments_for_built_in_commands[i], "");
                         }
                         else{
-                          strcpy(arguments[i], current_arg2);
+                          strcpy(arguments_for_built_in_commands[i], current_arg2);
                         }
                       }
                       else{
-                        strcpy(arguments[i], current_arg);
+                        strcpy(arguments_for_built_in_commands[i], current_arg);
                       }
                         
                       i++;
                       current_arg = strtok(NULL, token_delimiter);
                     }
-                    strcpy(arguments[i], "\0");
+                    strcpy(arguments_for_built_in_commands[i], "\0");
             }
             
             
@@ -147,9 +144,9 @@ int main() {
             setenv: sets an environment variable
             */
             if (strcmp(command,"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
-                for (i=0; strcmp(arguments[i],"\0") != 0; i++){ // get directory from arguments
-                    if (!startsWith(arguments[i], "-")){
-                        current_arg = arguments[i];
+                for (i=0; strcmp(arguments_for_built_in_commands[i],"\0") != 0; i++){ // get directory from arguments
+                    if (!startsWith(arguments_for_built_in_commands[i], "-")){
+                        current_arg = arguments_for_built_in_commands[i];
                         break;
                     }
                 }
@@ -171,8 +168,8 @@ int main() {
             else if (strcmp(command,"echo") == 0){
               // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
               token = strtok(NULL, token_delimiter);
-              for (i=0; strcmp(arguments[i],"\0") != 0; i++){
-                  printf("%s ", arguments[i]);                  
+              for (i=0; strcmp(arguments_for_built_in_commands[i],"\0") != 0; i++){
+                  printf("%s ", arguments_for_built_in_commands[i]);                  
               }
               printf("\n");
               
@@ -183,8 +180,8 @@ int main() {
             else if (strcmp(command,"env") == 0){ // TODO: implement env flags
             // TODO: print the environment variable when a label is given
                 m=0; 
-                for (i=0; strcmp(arguments[i],"\0") != 0; i++){ // print specific environment varibales
-                  current_arg = getenv(arguments[i]);
+                for (i=0; strcmp(arguments_for_built_in_commands[i],"\0") != 0; i++){ // print specific environment varibales
+                  current_arg = getenv(arguments_for_built_in_commands[i]);
                   if (current_arg!=0){ // error handling
                     printf("%s\n", current_arg);     
                   }
@@ -219,15 +216,15 @@ int main() {
                 pid = fork();
                 if (pid<0){
                   printf("Error forking\n");
+                  }
                 else if (pid==0){ // child process
-                  i = nonBuiltInCommand(command);
+                  // i = execvp(command, arguments);
                 }
                 else{
+                  wait(NULL);
                   // parent process
                 }
-                }
-            }
- 
+                } 
         } while(command_line[0] == 0x0A);  // while just ENTER pressed
 
       
