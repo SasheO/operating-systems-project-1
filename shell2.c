@@ -42,7 +42,8 @@ char *rtrim(char *s)
 
 char* trimString(char * s) // get rid of any white trailing white space and beginning or end
 {
-    return rtrim(ltrim(command_line));
+  // printf("%s\n";)
+    return rtrim(ltrim(s));
 }
 
 // TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
@@ -79,8 +80,8 @@ int main() {
     char * current_arg; 
     char * current_arg2; // for cd
     char * command;
-    int setenv_equals_index;
     char equals_sign_char = '=';
+    char * commands_to_not_tokenize [] = { "export"}; // commands to not tokenize because tokenizing by spacing will cause issues
     
     	
     while (true) {
@@ -104,20 +105,28 @@ int main() {
             strcpy(command_line, command_line_copy);
             command = strtok(command_line_copy, token_delimiter); // get first instructions. for some reason, this modifies both command_line and command_line_copy by adding a /0 after first token???
             current_arg = strtok(NULL, token_delimiter);
-            i = 0;
             
-                while (current_arg) {
-                    strcpy(arguments[i], current_arg);
-                    i++;
-                    current_arg = strtok(NULL, token_delimiter);
+            for (i=0; i<sizeof(commands_to_not_tokenize)/sizeof(char*); i++){
+                if (strcmp(command, commands_to_not_tokenize[i])==0){
+                    i=-1;
+                    break;
                 }
-                strcpy(arguments[i], "\0");
+            }
+
+            if (i==-1){
+                i = 0;
+                    while (current_arg) {
+                        strcpy(arguments[i], current_arg);
+                        i++;
+                        current_arg = strtok(NULL, token_delimiter);
+                    }
+                    strcpy(arguments[i], "\0");
+            }
+            
             
             // TODO: rigorous testing of directory and testing commands implemented in the parent directory itself e.g. cd, pwd, exit, etc
             
             /*
-            cd: changes the current working directory
-            pwd: prints the current working directory
             setenv: sets an environment variable
             */
             if (strcmp(command,"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
@@ -169,28 +178,23 @@ int main() {
             //     for (i=0; strcmp(arguments[i],"\0") != 0; i++){
             //     printf("%s\n", arguments[i]);
             //   }
-              setenv_equals_index = 0;
-              for (i=0; i==strlen(arguments[0]); i++){
-                printf("%d %c\n",4, arguments[0][i]);
-                if (arguments[0][i]==equals_sign_char){
-                    printf("%d %c\n",3, arguments[0][i]);
-                    if (setenv_equals_index!=0){
-                        printf("1 Invalid syntax\n");
 
-                    }
-                    else{
-                        setenv_equals_index = i;
-                    }
-                }
-              }
-                if (setenv_equals_index == 0){
-                    printf("2 Invalid syntax\n");
-                }
-                else{
-                    current_arg2 = sliceString(arguments[0], 0, setenv_equals_index);
-                    current_arg2 = sliceString(arguments[0], setenv_equals_index, strlen(arguments[0]));
-                }
-              
+
+            command = sliceString(command_line_copy, 0, strlen(command));
+            command_line_copy[strlen(command_line_copy)] = ' ';
+            // current_arg = trimString(sliceString(command_line_copy, strlen(command), strlen(command_line_copy)));
+            // putenv(current_arg);
+
+            current_arg = strchr(command_line_copy, ' ');
+            current_arg2 = strchr(command_line_copy, '=');
+            i = strlen(command_line_copy) - strlen(current_arg2)+1;
+            int b=strlen(command_line_copy) - strlen(current_arg)+1;
+            current_arg = trimString(sliceString(command_line_copy, b,i-2));
+            current_arg2 = trimString(sliceString(command_line_copy, i, strlen(command_line_copy)));
+            i = setenv(current_arg, current_arg2, 1);
+            if (i!=0){
+              printf("Error occured: %d\n", i);
+            }
             }
  
         } while(command_line[0] == 0x0A);  // while just ENTER pressed
