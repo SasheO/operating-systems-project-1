@@ -41,6 +41,24 @@ char* trimString(char * s) // get rid of any white trailing white space and begi
     return rtrim(ltrim(s));
 }
 
+// TODO: cite sliceString https://medium.com/@kkhicher1/how-to-slice-string-in-c-language-7a5fd3a5db46
+char *sliceString(char *str, int start, int end)
+{
+
+    int i;
+    int size = (end - start) + 2;
+    char *output = (char *)malloc(size * sizeof(char));
+
+    for (i = 0; start <= end; start++, i++)
+    {
+        output[i] = str[start];
+    }
+
+    output[size] = '\0';
+
+    return output;
+}
+
 int main() {
     // Stores the string typed into the command line.
     char command_line[MAX_COMMAND_LINE_LEN];
@@ -48,7 +66,9 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
-    char * environment_variable,environment_variable_value;
+    int i, j;
+    char * environment_variable;
+    char * environment_variable_value;
   
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
@@ -81,7 +101,7 @@ int main() {
             return 0;
         }
 
-        int i = 0;
+        i = 0;
         char *p = strtok (command_line, token_delimiter);
 
         while (p != NULL)
@@ -133,7 +153,18 @@ int main() {
         else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ // TODO: implement flags for export (set environment variables). 
           // get the environment_variable name and environment_variable_value
           if (arguments[1]!=NULL){
-            environment_variable_value = strchr(arguments[i], '=');
+            environment_variable = strtok(arguments[1], "=");
+            i = strlen(environment_variable);
+            environment_variable[i] = '=';
+            j = strlen(arguments[1]);
+            if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
+              environment_variable = sliceString(arguments[1], 0, i-1);
+              environment_variable_value = sliceString(arguments[1], i+1, j);
+              i = setenv(environment_variable, environment_variable_value, 1);
+              if (i!=0){
+              printf("Error occured: %d\n", i);
+              }
+            }
           }
           
         }
