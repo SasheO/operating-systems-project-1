@@ -81,7 +81,7 @@ int main() {
     char * current_arg2; // for cd
     char * command;
     char equals_sign_char = '=';
-    char * commands_to_not_tokenize [] = { "export"}; // commands to not tokenize because tokenizing by spacing will cause issues
+    char * commands_to_not_tokenize [] = { "setenv"}; // commands to not tokenize because tokenizing by spacing will cause issues
     
     	
     while (true) {
@@ -169,17 +169,7 @@ int main() {
                 }
             }
             // TODO: implement setenv
-            else if (strcmp(command,"export") == 0){ // TODO: implement flags for export (set environment variables). 
-            // TODO: export VAR="my value" can have spaces, meaning the tokenization is tricky here. how to do this?
-                // current_arg = strchr(arguments[0], "=" );
-                // printf("%s", arguments[0]);
-                // printf("%s\n", current_arg);
-                // check if one and only one = is in next token, export
-            //     for (i=0; strcmp(arguments[i],"\0") != 0; i++){
-            //     printf("%s\n", arguments[i]);
-            //   }
-
-
+            else if (strcmp(command,"setenv") == 0){ // TODO: implement flags for setenv (set environment variables). 
             command = sliceString(command_line_copy, 0, strlen(command));
             command_line_copy[strlen(command_line_copy)] = ' ';
             // current_arg = trimString(sliceString(command_line_copy, strlen(command), strlen(command_line_copy)));
