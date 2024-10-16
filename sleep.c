@@ -2,8 +2,7 @@
 #include<unistd.h>
 
 int main() {
-    // Stores the string typed into the command line.
-    printf("This program sleeps for 5 seconds.\n");
-    sleep(5);
+    sleep(100);
+    printf("I was asleep for 100 seconds, just woke up!\n");
     return 0;
 }

@@ -13,7 +13,7 @@
 char prompt[] = "> ";
 char delimiters[] = " \t\r\n";
 extern char **environ;
-pid_t parent_pid;
+pid_t root_parent_pid;
 
 // TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
 bool startsWith(const char *a, const char *b)
@@ -63,9 +63,18 @@ char *sliceString(char *str, int start, int end)
 void signal_handler(int signum)
 { // should exit if is child process, otherwise do nothing
   pid_t current_pid = getpid();
-  if (parent_pid!=current_pid){
+  if (root_parent_pid!=current_pid){
     exit(0);
   }
+}
+
+void killLongRunningChildProcess(int signum)
+{
+    char   buf[MAX_COMMAND_LINE_LEN];
+    int current_pid = getpid();
+    sprintf(buf, "Terminated pocess %d took too long to finish\n", current_pid);
+    write(1, buf, strlen(buf));
+    kill(current_pid, signum);
 }
 
 int main() {
@@ -80,11 +89,12 @@ int main() {
     char * environment_variable;
     char * environment_variable_value;
     pid_t  pid;
+    signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
   
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
 
-    parent_pid = getpid();
+    root_parent_pid = getpid();
     	
     while (true) {
       
@@ -204,6 +214,7 @@ int main() {
             
           }
           else{ // child process
+            alarm(10);
             i = execvp(arguments[0], arguments);
           }
         }
