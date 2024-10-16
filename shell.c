@@ -70,6 +70,7 @@ void signal_handler(int signum)
 
 void killLongRunningChildProcess(int signum)
 {
+    // TODO: print out message that process is killed. figure out why this print message doesn't work!!!
     char   buf[MAX_COMMAND_LINE_LEN];
     int current_pid = getpid();
     sprintf(buf, "Terminated pocess %d took too long to finish\n", current_pid);
@@ -218,37 +219,7 @@ int main() {
             i = execvp(arguments[0], arguments);
           }
         }
-        // TODO:
-        // 
         
-			  // 0. Modify the prompt to print the current working directory
-			  
-			
-        // 1. Tokenize the command line input (split it on whitespace)
-
-      
-        // 2. Implement Built-In Commands
-      
-    
-        // 3. Create a child process which will execute the command line input
-
-  
-        // 4. The parent process should wait for the child to complete unless its a background process
-      
-      
-        // Hints (put these into Google):
-        // man fork
-        // man execvp
-        // man wait
-        // man strtok
-        // man environ
-        // man signals
-        
-        // Extra Credit
-        // man dup2
-        // man open
-        // man pipes
     }
-    // This should never be reached.
     return -1;
 }
