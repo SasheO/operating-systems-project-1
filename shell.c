@@ -203,6 +203,10 @@ int main() {
           
         }
         else{
+            /* TODO: implement at least > and reimplement &. 
+            do this by adding a function that checks the arguments for which is found there.
+            this helps in knowing what does what: https://sites.google.com/onprem.com/onprem-solution-partners/qvest-overview?authuser=0
+            */
           pid = fork();
           if (pid < 0){
             printf("Error forking\n");
