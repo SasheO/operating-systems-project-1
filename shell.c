@@ -14,6 +14,7 @@ char prompt[] = "> ";
 char delimiters[] = " \t\r\n";
 extern char **environ;
 pid_t root_parent_pid;
+bool redirect_stdout;
 
 // TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
 bool startsWith(const char *a, const char *b)
@@ -75,7 +76,8 @@ void killLongRunningChildProcess(int signum)
     int current_pid = getpid();
     sprintf(buf, "Terminated pocess %d took too long to finish\n", current_pid);
     write(1, buf, strlen(buf));
-    kill(current_pid, signum);
+    kill(current_pid, signum); // TODO: why does kill pid fail?
+    exit(0);
 }
 
 int main() {
@@ -91,6 +93,7 @@ int main() {
     char * environment_variable_value;
     pid_t  pid;
     signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
+    
   
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
@@ -125,7 +128,9 @@ int main() {
             return 0;
         }
 
-        i = 0;
+        // reset basic variables for each command processing
+        i = 0; 
+        redirect_stdout = 0; 
         char *p = strtok (command_line, token_delimiter);
 
         while (p != NULL)
@@ -205,7 +210,24 @@ int main() {
         else{
             /* TODO: implement at least > and reimplement &. 
             do this by adding a function that checks the arguments for which is found there.
-            this helps in knowing what does what: https://sites.google.com/onprem.com/onprem-solution-partners/qvest-overview?authuser=0
+            this helps in knowing what does what: 
+             https://thoughtbot.com/blog/input-output-redirection-in-the-shell
+             https://www.gnu.org/software/bash/manual/html_node/Redirections.html
+             https://www.youtube.com/watch?v=XGSK5xr_B_Q
+
+            implementing redirect_stdout:
+            https://stackoverflow.com/questions/17071702/c-language-read-from-stdout 
+            - check that redirect stdout symbol is there
+            - check that there is a filename redirecting to afterwards
+            // - check the syntax is right e.g. echo hi 1>/dev/null
+            - execute
+
+
+            example: echo hi > hi.txt
+            this should run as two different processes. echo hi, then > txt (taking in input)
+            this means that echo should not necessarily print out to stdout. 
+            maybe make all inbuilt functions that print to std or stderr (e.g. pwd, env, echo, etc)???  
+            maybe the ones that run in threads should be dealt with separately
             */
           pid = fork();
           if (pid < 0){
