@@ -80,12 +80,24 @@ void killLongRunningChildProcess(int signum)
     exit(0);
 }
 
-int* pwd(char *arguments[]){
+int* pwd(char *arguments[], int starting_indx){ // no flags implemented
   // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
+  int indx;
   int* redirect = malloc(2*sizeof(int));
+  redirect[0] = 0;
+  redirect[1] = 0;
   char current_dir[MAX_COMMAND_LINE_LEN];
   getcwd(current_dir, MAX_COMMAND_LINE_LEN);
   sprintf(print_buffer, "%s\n", current_dir);
+  char* token;
+  
+  for (indx=starting_indx; arguments[indx] != NULL; indx++){
+    token = trimString(arguments[indx]);
+    if (strcmp(token, ">")==0){
+      redirect[0] = 1;
+      redirect[1] = indx;
+    }
+  }
   return redirect;
 }
 
@@ -134,6 +146,8 @@ int main() {
     char token_delimiter[] = " ";
     char *target_directory;
     int i, j;
+    char *token;
+    int* redirect_arr;
     char * environment_variable;
     char * environment_variable_value;
     pid_t  pid;
@@ -248,8 +262,29 @@ int main() {
           }
         }
         else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
-          pwd(arguments);
-          write(1, print_buffer, strlen(print_buffer));
+          redirect_arr = pwd(arguments, 0);
+          // TODO: put while loop here. while redirect_arr[0]!=0 do something and recalculate redirect_arr = pwd(...)
+          if (redirect_arr[0]==1){ // if there is a redirect argument
+            i = redirect_arr[1]+1; // i = index of next token after >
+            if (arguments[i]==NULL){ // if there is just a > but not arguments after
+              sprintf(print_buffer, "Invalid command syntax\n");
+              write(2, print_buffer, strlen(print_buffer));
+            }
+            else{
+              token = arguments[i];
+              j = atoi( token ); // 
+
+              if (j == 0 && token[0] != '0'){ // not a number
+
+              }
+              else { // a number
+
+              }
+            }
+          }
+          else{
+            write(1, print_buffer, strlen(print_buffer));
+          }
           // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
