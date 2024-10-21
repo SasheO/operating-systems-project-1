@@ -15,6 +15,7 @@ char delimiters[] = " \t\r\n";
 extern char **environ;
 pid_t root_parent_pid;
 bool redirect_stdout;
+char print_buffer[MAX_COMMAND_LINE_LEN];
 
 // TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
 bool startsWith(const char *a, const char *b)
@@ -79,6 +80,51 @@ void killLongRunningChildProcess(int signum)
     exit(0);
 }
 
+int* pwd(char *arguments[]){
+  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
+  int* redirect = malloc(2*sizeof(int));
+  char current_dir[MAX_COMMAND_LINE_LEN];
+  getcwd(current_dir, MAX_COMMAND_LINE_LEN);
+  sprintf(print_buffer, "%s\n", current_dir);
+  return redirect;
+}
+
+int* echo(char *arguments[]){
+  int i;
+  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
+  int* redirect = malloc(2*sizeof(int));
+  sprintf(print_buffer, "%s", arguments[1]);
+  for (i=2;arguments[i]!=NULL; i++){
+    sprintf(print_buffer + strlen(print_buffer)," %s", arguments[i]);
+  }
+  sprintf(print_buffer + strlen(print_buffer), "\n");
+  return redirect;
+}
+
+int export(char *arguments[]){
+  // TODO: return -1 if error, 1 if no error
+  char * environment_variable;
+  char * environment_variable_value;
+  int i,j;
+  int error_state = 1;
+  if (arguments[1]!=NULL){
+  environment_variable = strtok(arguments[1], "=");
+  i = strlen(environment_variable);
+  environment_variable[i] = '=';
+  j = strlen(arguments[1]);
+  if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
+    environment_variable = sliceString(arguments[1], 0, i-1);
+    environment_variable_value = sliceString(arguments[1], i+1, j);
+    i = setenv(environment_variable, environment_variable_value, 1);
+    if (i!=0){
+      sprintf(print_buffer, "Error occured: %d\n", i);
+      error_state = -1;
+      }
+    }
+  }
+  return error_state;
+}
+
 int main() {
     // Stores the string typed into the command line.
     signal(SIGINT,signal_handler); //register alarm_handler to handle SIGALRM
@@ -87,7 +133,6 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
-    char print_buffer[MAX_COMMAND_LINE_LEN];
     int i, j;
     char * environment_variable;
     char * environment_variable_value;
@@ -171,6 +216,10 @@ int main() {
               at every command, clear print buffer and reset file descriptors if needed
               implement a check here for syntax and if it includes redirection > (for now, may implement others later)
               have a while loop that runs for each part of the command i.e. echo hi is decoded, then > hi.txt
+                idea:
+                  - for each command, move it to its own function that accepts outputs
+                  - return an array, or an int, or whatever depending on the command
+                  - for commands that print e.g. echo hi > hi.txt, after processing the first two, it should return the result of the string. if no more redirect, print to stdout otherwise redirect
               at initial step, do the computation.
               make all printf to be sprintf to a buffer, then decide where to print it to depending on if there is a redirection or not
               if there is more (e.g. a redirection, create the file description and dup2(file description, 1) or whatever needs to be done)
@@ -199,20 +248,12 @@ int main() {
           }
         }
         else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
-          sprintf(print_buffer, "%s\n", current_dir);
+          pwd(arguments);
           write(1, print_buffer, strlen(print_buffer));
           // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
-          sprintf(print_buffer, "%s", arguments[1]);
-          write(1, print_buffer, strlen(print_buffer));
-          // TODO: add write to file descriptor (stdout, or a file if a redirection)
-          for (i=2;arguments[i]!=NULL; i++){
-            sprintf(print_buffer, " %s", arguments[i]);
-            write(1, print_buffer, strlen(print_buffer));
-          // TODO: add write to file descriptor (stdout, or a file if a redirection)
-          }
-          sprintf(print_buffer, "\n");
+          echo(arguments);
           write(1, print_buffer, strlen(print_buffer));
           // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
@@ -238,21 +279,10 @@ int main() {
         }
         else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ // TODO: implement flags for export (set environment variables). 
           // get the environment_variable name and environment_variable_value
-          if (arguments[1]!=NULL){
-            environment_variable = strtok(arguments[1], "=");
-            i = strlen(environment_variable);
-            environment_variable[i] = '=';
-            j = strlen(arguments[1]);
-            if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
-              environment_variable = sliceString(arguments[1], 0, i-1);
-              environment_variable_value = sliceString(arguments[1], i+1, j);
-              i = setenv(environment_variable, environment_variable_value, 1);
-              if (i!=0){
-              sprintf(print_buffer, "Error occured: %d\n", i);
-              write(2, print_buffer, strlen(print_buffer));
-              // TODO: add write to error file  descriptor
-              }
-            }
+          i = export(arguments);
+          if (i==-1){
+            write(2, print_buffer, strlen(print_buffer));
+            // TODO: add write to error file  descriptor
           }
           
         }
