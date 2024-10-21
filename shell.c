@@ -39,7 +39,6 @@ char *rtrim(char *s)
 
 char* trimString(char * s) // get rid of any white trailing white space and beginning or end
 {
-  // printf("%s\n";)
     return rtrim(ltrim(s));
 }
 
@@ -72,7 +71,7 @@ void signal_handler(int signum)
 void killLongRunningChildProcess(int signum)
 {
     // TODO: print out message that process is killed. figure out why this print message doesn't work!!!
-    char   buf[MAX_COMMAND_LINE_LEN];
+    char buf[MAX_COMMAND_LINE_LEN];
     int current_pid = getpid();
     sprintf(buf, "Terminated pocess %d took too long to finish\n", current_pid);
     write(1, buf, strlen(buf));
@@ -169,9 +168,11 @@ int main() {
 
             solution:
               example: echo hi > hi.txt
+              at every command, clear print buffer and reset file descriptors if needed
               implement a check here for syntax and if it includes redirection > (for now, may implement others later)
               have a while loop that runs for each part of the command i.e. echo hi is decoded, then > hi.txt
               at initial step, do the computation.
+              make all printf to be sprintf to a buffer, then decide where to print it to depending on if there is a redirection or not
               if there is more (e.g. a redirection, create the file description and dup2(file description, 1) or whatever needs to be done)
               using dup2: https://www.geeksforgeeks.org/dup-dup2-linux-system-call/
             */
@@ -190,20 +191,25 @@ int main() {
           }
           if (!startsWith(target_directory, "-")){ // if not a flag
               if (chdir(target_directory) != 0) { // try changing directory
-                  printf("%s is not a valid directory\n", target_directory);
+                  sprintf(print_buffer, "%s is not a valid directory\n", target_directory);
+                  // TODO: add write to error descriptor here
               }
           
           }
         }
         else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
-          printf("%s\n", current_dir);
+          sprintf(print_buffer, "%s\n", current_dir);
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
-          printf("%s", arguments[1]);
+          sprintf(print_buffer, "%s", arguments[1]);
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
           for (i=2;arguments[i]!=NULL; i++){
-            printf(" %s", arguments[i]);
+            sprintf(print_buffer, " %s", arguments[i]);
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
           }
-          printf("\n");
+          sprintf(print_buffer, "\n");
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
           exit(0);
@@ -212,12 +218,14 @@ int main() {
           if (arguments[1]!=NULL){
             environment_variable_value = getenv(arguments[1]);
             if (environment_variable_value!=0){
-              printf("%s\n", environment_variable_value);
+              sprintf(print_buffer, "%s\n", environment_variable_value);
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
             }
           }
           else{
             for (i=0; environ[i]!=NULL; i++) {
-              printf("%d: %s\n", i, environ[i]);
+              sprintf(print_buffer, "%d: %s\n", i, environ[i]);
+          // TODO: add write to file descriptor (stdout, or a file if a redirection)
             }
           }
         }
@@ -233,7 +241,8 @@ int main() {
               environment_variable_value = sliceString(arguments[1], i+1, j);
               i = setenv(environment_variable, environment_variable_value, 1);
               if (i!=0){
-              printf("Error occured: %d\n", i);
+              sprintf(print_buffer, "Error occured: %d\n", i);
+              // TODO: add write to error file  descriptor
               }
             }
           }
@@ -243,7 +252,8 @@ int main() {
             
           pid = fork();
           if (pid < 0){
-            printf("Error forking\n");
+            sprintf(print_buffer, ("Error forking\n");
+              // TODO: add write to error file  descriptor
           }
           else if (pid>0){ // parent process
             for (i=0; arguments[i]!=NULL; i++){} // get i to be length of arguments array
