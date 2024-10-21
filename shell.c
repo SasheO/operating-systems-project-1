@@ -88,6 +88,7 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
+    char print_buffer[MAX_COMMAND_LINE_LEN];
     int i, j;
     char * environment_variable;
     char * environment_variable_value;
@@ -158,24 +159,26 @@ int main() {
             implementing redirect_stdout:
             https://stackoverflow.com/questions/17071702/c-language-read-from-stdout 
             - check that redirect stdout symbol is there
-            - check that there is a filename redirecting to afterwards
+            - check that there is a filename/descriptor redirecting to afterwards
             // - check the syntax is right e.g. echo hi 1>/dev/null
             - execute
 
 
-            example: echo hi > hi.txt
-            this should run as two different processes. echo hi, then > txt (taking in input)
-            this means that echo should not necessarily print out to stdout. 
-            maybe make all inbuilt functions that print to std or stderr (e.g. pwd, env, echo, etc)???  
-            maybe the ones that run in threads should be dealt with separately
+            
+            
 
             solution:
+              example: echo hi > hi.txt
               implement a check here for syntax and if it includes redirection > (for now, may implement others later)
-              using dup2: https://www.youtube.com/watch?v=PIb2aShU_H4
+              have a while loop that runs for each part of the command i.e. echo hi is decoded, then > hi.txt
+              at initial step, do the computation.
+              if there is more (e.g. a redirection, create the file description and dup2(file description, 1) or whatever needs to be done)
+              using dup2: https://www.geeksforgeeks.org/dup-dup2-linux-system-call/
             */
 
             /*
             syntax check: check if redirection exists. if it does, check if there is a file afterwards. 
+            break command according to redirections, execute them one after another in order
             */
 
         if (strcmp(arguments[0],"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
