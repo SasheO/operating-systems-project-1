@@ -140,16 +140,15 @@ int export(char *arguments[]){
 void forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
-  
   current_pid = getpid();
-
   if (j == 0 && token[0] != '0'){   // token is not a number
     file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC,  0777); // gave bad file descriptor error without 0777
     if (file_desc==-1){
       perror("error opening file:");
-      if (root_parent_pid!=current_pid){
-        exit(0);
-      }
+        // it is expected this function is only run in a child process so this should terminate
+        if (root_parent_pid!=current_pid){ // this is running in a child process
+          exit(0);
+        }
     }
     dup2(file_desc, 1); // instead of writing to stdout (1), will write to file_desc
   }
@@ -166,12 +165,10 @@ void forward_redirection(int j, char * token){
   j = close(file_desc); // have to close file descriptor after opening
   if (j==-1){
     perror("error closing file:");
-    
   }
 
-  // should exit if is child process, otherwise do nothing. 
   // it is expected this function is only run in a child process so this should terminate
-  if (root_parent_pid!=current_pid){
+  if (root_parent_pid!=current_pid){ // this is running in a child process
     exit(0);
   }
 }
@@ -184,7 +181,7 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
-    int i, j, k;
+    int i, j;
     char *token;
     int* redirect_arr;
     char * environment_variable;
@@ -313,11 +310,11 @@ int main() {
             else{
               token = arguments[i];
               j = atoi( token ); // 
-              k = fork();
-              if (k==0){ // child process
+              pid = fork();
+              if (pid==0){ // child process
                 forward_redirection(j, token);
               }
-              else if (k<0){
+              else if (pid<0){
                 printf("Error forking\n");
               }
               else{
