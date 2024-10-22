@@ -140,28 +140,37 @@ int export(char *arguments[]){
 void forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
+  
+  current_pid = getpid();
 
-  if (j == 0 && token[0] != '0'){   
-    // token is not a number
-    // TODO: create file named after the file https://www.geeksforgeeks.org/input-output-system-calls-c-create-open-close-read-write/
-    // TODO: change the file descriptor
-    file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC);
-    printf("%s\n",print_buffer);
-    dup2(file_desc,1); // instead of writing to stdout (1), will write to file_desc
+  if (j == 0 && token[0] != '0'){   // token is not a number
+    file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC,  0777); // gave bad file descriptor error without 0777
+    if (file_desc==-1){
+      perror("error opening file:");
+      if (root_parent_pid!=current_pid){
+        exit(0);
+      }
+    }
+    dup2(file_desc, 1); // instead of writing to stdout (1), will write to file_desc
   }
   else { // token is a number e.g. 2 for stderr
-    if (j==0){ // 0 is for stdin. invalid input
+    if (j==0){ // TODO: 0 is for stdin. invalid input
     }
     else{
       dup2(j,1);
     }
   }
-  // TODO: write to file descriptor
-  write(1,print_buffer, strlen(print_buffer));
-  close(file_desc);
 
-  // should exit if is child process, otherwise do nothing
-  current_pid = getpid();
+  write(1,print_buffer, strlen(print_buffer));
+
+  j = close(file_desc); // have to close file descriptor after opening
+  if (j==-1){
+    perror("error closing file:");
+    
+  }
+
+  // should exit if is child process, otherwise do nothing. 
+  // it is expected this function is only run in a child process so this should terminate
   if (root_parent_pid!=current_pid){
     exit(0);
   }
@@ -305,8 +314,14 @@ int main() {
               token = arguments[i];
               j = atoi( token ); // 
               k = fork();
-              if (j==0){ // child process
+              if (k==0){ // child process
                 forward_redirection(j, token);
+              }
+              else if (k<0){
+                printf("Error forking\n");
+              }
+              else{
+                wait(NULL);
               }
             }
           }
