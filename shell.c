@@ -137,6 +137,36 @@ int export(char *arguments[]){
   return error_state;
 }
 
+void forward_redirection(int j, char * token){
+  pid_t current_pid;
+  int file_desc;
+
+  if (j == 0 && token[0] != '0'){   
+    // token is not a number
+    // TODO: create file named after the file https://www.geeksforgeeks.org/input-output-system-calls-c-create-open-close-read-write/
+    // TODO: change the file descriptor
+    file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC);
+    printf("%s\n",print_buffer);
+    dup2(file_desc,1); // instead of writing to stdout (1), will write to file_desc
+  }
+  else { // token is a number e.g. 2 for stderr
+    if (j==0){ // 0 is for stdin. invalid input
+    }
+    else{
+      dup2(j,1);
+    }
+  }
+  // TODO: write to file descriptor
+  write(1,print_buffer, strlen(print_buffer));
+  close(file_desc);
+
+  // should exit if is child process, otherwise do nothing
+  current_pid = getpid();
+  if (root_parent_pid!=current_pid){
+    exit(0);
+  }
+}
+
 int main() {
     // Stores the string typed into the command line.
     signal(SIGINT,signal_handler); //register alarm_handler to handle SIGALRM
@@ -145,7 +175,7 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
-    int i, j;
+    int i, j, k;
     char *token;
     int* redirect_arr;
     char * environment_variable;
@@ -274,23 +304,10 @@ int main() {
             else{
               token = arguments[i];
               j = atoi( token ); // 
-
-              if (j == 0 && token[0] != '0'){ // token is not a number
-              // TODO: create file named after the file https://www.geeksforgeeks.org/input-output-system-calls-c-create-open-close-read-write/
-              // TODO: change the file descriptor
-                file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC);
-                dup2(file_desc,1); // instead of writing to stdout (1), will write to file_desc
+              k = fork();
+              if (j==0){ // child process
+                forward_redirection(j, token);
               }
-              else { // token is a number e.g. 2 for stderr
-                if (j==0){ // 0 is for stdin. invalid input
-
-                }
-                else{
-                  dup2(j,1);
-                }
-              }
-              // TODO: write to file descriptor
-              printf("%s\n", print_buffer);
             }
           }
           else{
