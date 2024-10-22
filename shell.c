@@ -151,6 +151,7 @@ int main() {
     char * environment_variable;
     char * environment_variable_value;
     pid_t  pid;
+    int file_desc;
     signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
     
   
@@ -274,12 +275,22 @@ int main() {
               token = arguments[i];
               j = atoi( token ); // 
 
-              if (j == 0 && token[0] != '0'){ // not a number
-
+              if (j == 0 && token[0] != '0'){ // token is not a number
+              // TODO: create file named after the file https://www.geeksforgeeks.org/input-output-system-calls-c-create-open-close-read-write/
+              // TODO: change the file descriptor
+                file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC);
+                dup2(file_desc,1); // instead of writing to stdout (1), will write to file_desc
               }
-              else { // a number
+              else { // token is a number e.g. 2 for stderr
+                if (j==0){ // 0 is for stdin. invalid input
 
+                }
+                else{
+                  dup2(j,1);
+                }
               }
+              // TODO: write to file descriptor
+              printf("%s\n", print_buffer);
             }
           }
           else{
