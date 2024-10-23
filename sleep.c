@@ -1,3 +1,12 @@
+/***************************************************************************************
+*    Title: sleep.c
+*    Author: Mezisashe Ojuba
+*    Date: 23 Oct 2024
+*    Code version: 1.0
+*    Availability: https://github.com/SasheO/operating-systems-project-1
+*
+***************************************************************************************/
+
 #include <stdio.h>
 #include<unistd.h>
 
