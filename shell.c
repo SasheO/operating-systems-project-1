@@ -1,7 +1,11 @@
-/*
-    Author: Mezisashe Ojuba
-    Written: 23 Oct 2024
-*/
+/***************************************************************************************
+*    Title: sleep.c
+*    Author: Mezisashe Ojuba
+*    Date: 23 Oct 2024
+*    Code version: 1.0
+*    Availability: https://github.com/SasheO/operating-systems-project-1
+*
+***************************************************************************************/
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,20 +26,19 @@ pid_t root_parent_pid;
 bool redirect_stdout;
 char print_buffer[MAX_COMMAND_LINE_LEN];
 
-// TODO: cite startsWith https://stackoverflow.com/questions/15515088/how-to-check-if-string-starts-with-certain-string-in-c
-bool startsWith(const char *a, const char *b)
+bool startsWith(const char *a, const char *b) // [1]
 {
    if(strncmp(a, b, strlen(b)) == 0) return 1;
    return 0;
 }
 
-char *ltrim(char *s)
+char *ltrim(char *s) 
 {
     while(isspace(*s)) s++;
     return s;
 }
 
-char *rtrim(char *s)
+char *rtrim(char *s) 
 {
     char* back = s + strlen(s);
     while(isspace(*--back));
@@ -48,8 +51,7 @@ char* trimString(char * s) // get rid of any white trailing white space and begi
     return rtrim(ltrim(s));
 }
 
-// TODO: cite sliceString https://medium.com/@kkhicher1/how-to-slice-string-in-c-language-7a5fd3a5db46
-char *sliceString(char *str, int start, int end)
+char *sliceString(char *str, int start, int end) // [2]
 {
 
     int i;
