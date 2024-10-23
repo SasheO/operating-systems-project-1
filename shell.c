@@ -144,10 +144,6 @@ int export(char *arguments[]){
   return error_state;
 }
 
-void forward_redirection_loop(){
-  
-}
-
 void forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
@@ -181,6 +177,30 @@ void forward_redirection(int j, char * token){
   // it is expected this function is only run in a child process so this should terminate
   if (root_parent_pid!=current_pid){ // this is running in a child process
     exit(0);
+  }
+}
+
+void forward_redirection_loop(char *arguments[], int * redirect_arr){
+  int i, num, pid;
+  char * token;
+  i = redirect_arr[1]+1; // i = index of next token after >
+  if (arguments[i]==NULL){ // if there is just a > but not arguments after
+    sprintf(print_buffer, "Invalid command syntax\n");
+    write(2, print_buffer, strlen(print_buffer));
+  }
+  else{
+    token = arguments[i];
+    num = atoi( token ); // 
+    pid = fork();
+    if (pid==0){ // child process
+      forward_redirection(num, token);
+    }
+    else if (pid<0){
+      perror("Error forking:");
+    }
+    else{
+      wait(NULL);
+    }
   }
 }
 
@@ -313,25 +333,7 @@ int main() {
           redirect_arr = pwd(arguments, 0);
           // TODO: put while loop here. while redirect_arr[0]!=0 do something and recalculate redirect_arr = pwd(...)
           if (redirect_arr[0]==1){ // if there is a redirect argument
-            i = redirect_arr[1]+1; // i = index of next token after >
-            if (arguments[i]==NULL){ // if there is just a > but not arguments after
-              sprintf(print_buffer, "Invalid command syntax\n");
-              write(2, print_buffer, strlen(print_buffer));
-            }
-            else{
-              token = arguments[i];
-              j = atoi( token ); // 
-              pid = fork();
-              if (pid==0){ // child process
-                forward_redirection(j, token);
-              }
-              else if (pid<0){
-                printf("Error forking\n");
-              }
-              else{
-                wait(NULL);
-              }
-            }
+            forward_redirection_loop(arguments, redirect_arr);
           }
           else{
             write(1, print_buffer, strlen(print_buffer));
