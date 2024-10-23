@@ -181,16 +181,15 @@ int main() {
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
-    int i, j;
-    char *token;
-    int* redirect_arr;
+    int i, j; // integer variables used in for loops, etc
+    char *token; // string used to hold next token
+    int* redirect_arr; // pointer to array for holding redirections instructions (e.g. for >, |, < commands)
     char * environment_variable;
     char * environment_variable_value;
-    pid_t  pid;
-    int file_desc;
-    signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
+    pid_t  pid; // will hold process id whenever fork is done
+
     
-  
+
     // Stores the tokenized command line input.
     char *arguments[MAX_COMMAND_LINE_ARGS];
 
@@ -362,14 +361,17 @@ int main() {
           
         }
         else{
-            
+          signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
+          
           pid = fork();
           if (pid < 0){
             sprintf(print_buffer, "Error forking\n"); 
             write(2, print_buffer, strlen(print_buffer));
             // TODO: add write to error file  descriptor
+            
           }
           else if (pid>0){ // parent process
+
             for (i=0; arguments[i]!=NULL; i++){} // get i to be length of arguments array
             if (trimString(arguments[i-1])!="&"){ // only wait for child process to end if command does not end with &
               wait(NULL);
