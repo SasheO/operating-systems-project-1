@@ -125,10 +125,30 @@ int* echo(char *arguments[]){
   return redirect;
 }
 
+int * env(char * arguments[]){
+  int * redirect_arr;
+  char * environment_variable, environment_variable_value;
+
+  if (arguments[1]!=NULL){
+    environment_variable_value = getenv(arguments[1]);
+    if (environment_variable_value!=0){
+      sprintf(print_buffer, "%s\n", environment_variable_value);
+      write(1, print_buffer, strlen(print_buffer));
+  // TODO: add write to file descriptor (stdout, or a file if a redirection)
+    }
+  }
+  else{
+    for (i=0; environ[i]!=NULL; i++) {
+      sprintf(print_buffer, "%d: %s\n", i, environ[i]);
+    write(1, print_buffer, strlen(print_buffer));
+    // TODO: add write to file descriptor (stdout, or a file if a redirection)
+    }
+  }
+}
+
 int export(char *arguments[]){
   // TODO: return -1 if error, 1 if no error
-  char * environment_variable;
-  char * environment_variable_value;
+  char * environment_variable, environment_variable_value;
   int i,j;
   int error_state = 1;
   if (arguments[1]!=NULL){
@@ -319,21 +339,7 @@ int main() {
           exit(0);
         }
         else if (strcmp(arguments[0],"env") == 0){
-          if (arguments[1]!=NULL){
-            environment_variable_value = getenv(arguments[1]);
-            if (environment_variable_value!=0){
-              sprintf(print_buffer, "%s\n", environment_variable_value);
-              write(1, print_buffer, strlen(print_buffer));
-          // TODO: add write to file descriptor (stdout, or a file if a redirection)
-            }
-          }
-          else{
-            for (i=0; environ[i]!=NULL; i++) {
-              sprintf(print_buffer, "%d: %s\n", i, environ[i]);
-            write(1, print_buffer, strlen(print_buffer));
-            // TODO: add write to file descriptor (stdout, or a file if a redirection)
-            }
-          }
+          redirect_arr = env(arguments);
         }
         else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ // TODO: implement flags for export (set environment variables). 
           // get the environment_variable name and environment_variable_value
