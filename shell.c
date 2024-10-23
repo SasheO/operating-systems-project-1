@@ -240,7 +240,6 @@ int * env(char * arguments[]){
           // TODO: add write print_buffer to file descriptor (stdout, or a file if a redirection)
           
       }
-      forward_redirection_loop(arguments, redirect);
   // TODO: add write to file descriptor (stdout, or a file if a redirection)
     
   }
@@ -249,7 +248,7 @@ int * env(char * arguments[]){
     for (indx=1; environ[indx]!=NULL; indx++) {
       sprintf(print_buffer + strlen(print_buffer),"%d: %s\n", indx, environ[indx]);
     }
-    write(1, print_buffer, strlen(print_buffer));
+    
   }
   return redirect;
 }
@@ -277,8 +276,6 @@ int export(char *arguments[]){
   }
   return error_state;
 }
-
-
 
 
 int main() {
@@ -352,7 +349,7 @@ int main() {
 
         arguments[i++] = NULL;
 
-        if (strcmp(arguments[0],"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
+        if (strcmp(arguments[0],"cd") == 0){ 
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
               if (!startsWith(arguments[i], "-")){ // check if not a flag e.g. -P
                   target_directory = arguments[i];
@@ -365,7 +362,7 @@ int main() {
               }
           }
         }
-        else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
+        else if (strcmp(arguments[0],"pwd") == 0){ 
           redirect_arr = pwd(arguments, 0);
           if (redirect_arr[0]==1){ // if there is a redirect argument
             forward_redirection_loop(arguments, redirect_arr);
@@ -374,7 +371,7 @@ int main() {
             write(1, print_buffer, strlen(print_buffer));
           }
         }
-        else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
+        else if (strcmp(arguments[0],"echo") == 0){ 
           redirect_arr = echo(arguments);
           if (redirect_arr[0]==1){ // if there is a redirect argument
             forward_redirection_loop(arguments, redirect_arr);
@@ -389,8 +386,14 @@ int main() {
         }
         else if (strcmp(arguments[0],"env") == 0){
           redirect_arr = env(arguments);
+          if (redirect_arr[0]==1){
+            forward_redirection_loop(arguments, redirect_arr);
+          }
+          else{
+            write(1, print_buffer, strlen(print_buffer));
+          }
         }
-        else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ // TODO: implement flags for export (set environment variables). 
+        else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ 
           // get the environment_variable name and environment_variable_value
           i = export(arguments);
           if (i==-1){
