@@ -74,7 +74,7 @@ void killLongRunningChildProcess(int signum)
     // TODO: print out message that process is killed. figure out why this print message doesn't work!!!
     char buf[MAX_COMMAND_LINE_LEN];
     int current_pid = getpid();
-    sprintf(buf, "Terminated pocess %d took too long to finish\n", current_pid);
+    sprintf(buf, "Terminated process %d took too long to finish\n", current_pid);
     write(1, buf, strlen(buf));
     kill(current_pid, signum); // TODO: why does kill pid fail?
     exit(0);
@@ -235,6 +235,7 @@ int main() {
           }
           else{ // if token is a variable
             p = getenv(trimString(sliceString(p, 1, strlen(p))));
+            if (p==NULL){p="";}
             arguments[i++] = p;
           }
             
@@ -283,7 +284,7 @@ int main() {
 
         if (strcmp(arguments[0],"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
-              if (!startsWith(arguments[i], "-")){ 
+              if (!startsWith(arguments[i], "-")){ // check if not a flag e.g. -P
                   target_directory = arguments[i];
                   break;
               }
