@@ -356,16 +356,13 @@ int main() {
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
               if (!startsWith(arguments[i], "-")){ // check if not a flag e.g. -P
                   target_directory = arguments[i];
+                  if (chdir(target_directory) != 0) { // try changing directory
+                    sprintf(print_buffer, "%s is not a valid directory\n", target_directory);
+                    write(2, print_buffer, strlen(print_buffer));
+                    // TODO: add write to error descriptor here
+                  }
                   break;
               }
-          }
-          if (!startsWith(target_directory, "-")){ // if not a flag
-              if (chdir(target_directory) != 0) { // try changing directory
-                  sprintf(print_buffer, "%s is not a valid directory\n", target_directory);
-                  write(2, print_buffer, strlen(print_buffer));
-                  // TODO: add write to error descriptor here
-              }
-          
           }
         }
         else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
