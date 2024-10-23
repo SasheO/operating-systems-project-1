@@ -88,7 +88,6 @@ void killLongRunningChildProcess(int signum)
 }
 
 int* pwd(char *arguments[], int starting_indx){ // no flags implemented
-  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
   int indx;
   int* redirect = malloc(2*sizeof(int));
   redirect[0] = 0;
@@ -112,6 +111,8 @@ int* echo(char *arguments[]){
   int i;
   // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
   int* redirect = malloc(2*sizeof(int));
+  redirect[0] = 0;
+  redirect[1] = 0;
   sprintf(print_buffer, "%s", arguments[1]);
   for (i=2;arguments[i]!=NULL; i++){
     if (strcmp(arguments[i], ">")==0){
@@ -126,10 +127,17 @@ int* echo(char *arguments[]){
 }
 
 int * env(char * arguments[]){
-  int * redirect_arr;
-  char * environment_variable, environment_variable_value;
+  int * redirect = malloc(2*sizeof(int));
+  char long_print_buffer[MAX_COMMAND_LINE_LEN];
+  char * environment_variable;
+  char * environment_variable_value;
+  int indx;
 
   if (arguments[1]!=NULL){
+    /* TODO: check if argument[1] == > in which case. do redirection. 
+    check if it is a variable name. if so, check if there is any future redirections.
+    edit redirect_arr accordingly;
+    */
     environment_variable_value = getenv(arguments[1]);
     if (environment_variable_value!=0){
       sprintf(print_buffer, "%s\n", environment_variable_value);
@@ -138,17 +146,19 @@ int * env(char * arguments[]){
     }
   }
   else{
-    for (i=0; environ[i]!=NULL; i++) {
-      sprintf(print_buffer, "%d: %s\n", i, environ[i]);
-    write(1, print_buffer, strlen(print_buffer));
+    for (indx=0; environ[indx]!=NULL; indx++) {
+      sprintf(print_buffer, "%d: %s\n", indx, environ[indx]);
+      write(1, print_buffer, strlen(print_buffer));
     // TODO: add write to file descriptor (stdout, or a file if a redirection)
     }
   }
+  return redirect;
 }
 
 int export(char *arguments[]){
   // TODO: return -1 if error, 1 if no error
-  char * environment_variable, environment_variable_value;
+  char * environment_variable;
+  char * environment_variable_value;
   int i,j;
   int error_state = 1;
   if (arguments[1]!=NULL){
