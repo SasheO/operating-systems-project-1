@@ -169,7 +169,6 @@ int* pwd(char *arguments[], int starting_indx){ // no flags implemented
 
 int* echo(char *arguments[]){
   int i;
-  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
   int* redirect = malloc(2*sizeof(int));
   redirect[0] = 0;
   redirect[1] = 0;
@@ -195,11 +194,6 @@ int * env(char * arguments[]){
   int indx;
 
   if (arguments[1]!=NULL){
-    /* TODO: check if argument[1] == > in which case. do redirection. 
-    check if it is a variable name. 
-    if so, check if there is any future redirections.
-    edit redirect_arr accordingly;
-    */
     if (strcmp(arguments[1],">") != 0){ // not a redirection, but rather the name of the environment variable to check
       environment_variable_value = getenv(arguments[1]);
       sprintf(print_buffer, "%s\n", environment_variable_value);
@@ -213,36 +207,17 @@ int * env(char * arguments[]){
         }
     }
 
-    
-    // environment_variable_value = getenv(arguments[1]);
-    // if (environment_variable_value!=0){
-    //   if (strcmp(environment_variable_value,">") != 0){ // not a redirection, but rather the name of the environment variable to check
+    else{ // i.e. the command is "env > filename"
+        redirect[0] = 1;
+        redirect[1] = 1; // indx of >
+        sprintf(print_buffer, "1: %s\n", environ[indx]);
+        for (indx=1; environ[indx]!=NULL; indx++) {
+          sprintf(print_buffer + strlen(print_buffer),"%d: %s\n", indx, environ[indx]);     
+        }          
+    }
 
-    //     sprintf(print_buffer, "%s\n", environment_variable_value);
-    //     // check if any more redirections
-    //     for (indx=2;arguments[indx]!=NULL; indx++){
-    //       if (strcmp(arguments[indx], ">")==0){
-    //         redirect[0] = 1;
-    //         redirect[1] = indx;
-    //         break;
-    //       }
-    //     }
-    //   }
-      else{ // i.e. the command is "env > filename"
-          redirect[0] = 1;
-          redirect[1] = 1; // indx of >
-          sprintf(print_buffer, "1: %s\n", environ[indx]);
-          for (indx=1; environ[indx]!=NULL; indx++) {
-            sprintf(print_buffer + strlen(print_buffer),"%d: %s\n", indx, environ[indx]);
-            
-          }
-
-          // TODO: add write print_buffer to file descriptor (stdout, or a file if a redirection)
-          
-      }
-  // TODO: add write to file descriptor (stdout, or a file if a redirection)
-    
   }
+
   else{ // argument[1]==NULL, meaning the command is just env with no other tokens
     sprintf(print_buffer, "1: %s\n", environ[indx]);
     for (indx=1; environ[indx]!=NULL; indx++) {
@@ -254,7 +229,7 @@ int * env(char * arguments[]){
 }
 
 int export(char *arguments[]){
-  // TODO: return -1 if error, 1 if no error
+  // TODO: change this to return int* redirect like pwd and env functions
   char * environment_variable;
   char *  environment_variable_value;
   int i,j;
@@ -292,12 +267,7 @@ int main() {
     char * environment_variable;
     char * environment_variable_value;
     pid_t  pid; // will hold process id whenever fork is done
-
-    
-
-    // Stores the tokenized command line input.
-    char *arguments[MAX_COMMAND_LINE_ARGS];
-
+    char *arguments[MAX_COMMAND_LINE_ARGS]; // Stores the tokenized command line input.
     root_parent_pid = getpid();
     	
     while (true) {
@@ -356,7 +326,7 @@ int main() {
                   if (chdir(target_directory) != 0) { // try changing directory
                     sprintf(print_buffer, "%s is not a valid directory\n", target_directory);
                     write(2, print_buffer, strlen(print_buffer));
-                    // TODO: add write to error descriptor here
+                    // TODO: implement error forward redirect, move write to error descriptor here
                   }
                   break;
               }
@@ -379,7 +349,6 @@ int main() {
           else{
             write(1, print_buffer, strlen(print_buffer));
           }
-          // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
           exit(0);
@@ -394,8 +363,8 @@ int main() {
           }
         }
         else if (strcmp(arguments[0],"export") == 0 || strcmp(arguments[0],"setenv")==0){ 
-          // get the environment_variable name and environment_variable_value
-          i = export(arguments);
+          // TODO: standardize the output of export to be an int * array of redirect_arr, like pwd and env
+          i = export(arguments); 
           if (i==-1){
             write(2, print_buffer, strlen(print_buffer));
             // TODO: add write to error file  descriptor
@@ -422,6 +391,7 @@ int main() {
           }
           else{ // child process
             alarm(10);
+            // TODO: implement forward redirection for non-built in command
             i = execvp(arguments[0], arguments);
           }
         }
