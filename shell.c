@@ -128,7 +128,7 @@ int* echo(char *arguments[]){
 
 int * env(char * arguments[]){
   int * redirect = malloc(2*sizeof(int));
-  char long_print_buffer[MAX_COMMAND_LINE_LEN];
+  char long_print_buffer[MAX_COMMAND_LINE_LEN*MAX_COMMAND_LINE_ARGS];
   char * environment_variable;
   char * environment_variable_value;
   int indx;
@@ -140,17 +140,27 @@ int * env(char * arguments[]){
     */
     environment_variable_value = getenv(arguments[1]);
     if (environment_variable_value!=0){
-      sprintf(print_buffer, "%s\n", environment_variable_value);
+      if (strcmp(environment_variable_value,">") != 0){ // not a redirection, but rather the name of the environment variable to check
+        sprintf(print_buffer, "%s\n", environment_variable_value);
+      }
+      else{ // i.e. the command is "env > filename"
+          sprintf(long_print_buffer, "1: %s\n", environ[indx]);
+          for (indx=1; environ[indx]!=NULL; indx++) {
+            sprintf(long_print_buffer + strlen(long_print_buffer),"%d: %s\n", indx, environ[indx]);
+          }
+          // TODO: add write long_print_buffer to file descriptor (stdout, or a file if a redirection)
+          
+      }
       write(1, print_buffer, strlen(print_buffer));
   // TODO: add write to file descriptor (stdout, or a file if a redirection)
     }
   }
   else{
-    for (indx=0; environ[indx]!=NULL; indx++) {
-      sprintf(print_buffer, "%d: %s\n", indx, environ[indx]);
-      write(1, print_buffer, strlen(print_buffer));
-    // TODO: add write to file descriptor (stdout, or a file if a redirection)
+    sprintf(long_print_buffer, "1: %s\n", environ[indx]);
+    for (indx=1; environ[indx]!=NULL; indx++) {
+      sprintf(long_print_buffer + strlen(long_print_buffer),"%d: %s\n", indx, environ[indx]);
     }
+    write(1, long_print_buffer, strlen(long_print_buffer));
   }
   return redirect;
 }
@@ -158,7 +168,7 @@ int * env(char * arguments[]){
 int export(char *arguments[]){
   // TODO: return -1 if error, 1 if no error
   char * environment_variable;
-  char * environment_variable_value;
+  char *  environment_variable_value;
   int i,j;
   int error_state = 1;
   if (arguments[1]!=NULL){
@@ -178,6 +188,7 @@ int export(char *arguments[]){
   }
   return error_state;
 }
+
 
 void forward_redirection(int j, char * token){
   pid_t current_pid;
