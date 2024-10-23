@@ -144,6 +144,10 @@ int export(char *arguments[]){
   return error_state;
 }
 
+void forward_redirection_loop(){
+  
+}
+
 void forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
