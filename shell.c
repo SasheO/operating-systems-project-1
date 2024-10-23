@@ -114,6 +114,11 @@ int* echo(char *arguments[]){
   int* redirect = malloc(2*sizeof(int));
   sprintf(print_buffer, "%s", arguments[1]);
   for (i=2;arguments[i]!=NULL; i++){
+    if (strcmp(arguments[i], ">")==0){
+      redirect[0] = 1;
+      redirect[1] = i;
+      break;
+    }
     sprintf(print_buffer + strlen(print_buffer)," %s", arguments[i]);
   }
   sprintf(print_buffer + strlen(print_buffer), "\n");
@@ -275,44 +280,6 @@ int main() {
 
         arguments[i++] = NULL;
 
-        /* TODO: implement at least > and reimplement &. 
-            do this by adding a function that checks the arguments for which is found there.
-            this helps in knowing what does what: 
-             https://thoughtbot.com/blog/input-output-redirection-in-the-shell
-             https://www.gnu.org/software/bash/manual/html_node/Redirections.html
-             https://www.youtube.com/watch?v=XGSK5xr_B_Q
-
-            implementing redirect_stdout:
-            https://stackoverflow.com/questions/17071702/c-language-read-from-stdout 
-            - check that redirect stdout symbol is there
-            - check that there is a filename/descriptor redirecting to afterwards
-            // - check the syntax is right e.g. echo hi 1>/dev/null
-            - execute
-
-
-            
-            
-
-            solution:
-              example: echo hi > hi.txt
-              at every command, clear print buffer and reset file descriptors if needed
-              implement a check here for syntax and if it includes redirection > (for now, may implement others later)
-              have a while loop that runs for each part of the command i.e. echo hi is decoded, then > hi.txt
-                idea:
-                  - for each command, move it to its own function that accepts outputs
-                  - return an array, or an int, or whatever depending on the command
-                  - for commands that print e.g. echo hi > hi.txt, after processing the first two, it should return the result of the string. if no more redirect, print to stdout otherwise redirect
-              at initial step, do the computation.
-              make all printf to be sprintf to a buffer, then decide where to print it to depending on if there is a redirection or not
-              if there is more (e.g. a redirection, create the file description and dup2(file description, 1) or whatever needs to be done)
-              using dup2: https://www.geeksforgeeks.org/dup-dup2-linux-system-call/
-            */
-
-            /*
-            syntax check: check if redirection exists. if it does, check if there is a file afterwards. 
-            break command according to redirections, execute them one after another in order
-            */
-
         if (strcmp(arguments[0],"cd") == 0){ // TODO: implement more complex cd scenarios https://www.tutorialspoint.com/how-to-use-cd-command-in-bash-scripts
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
               if (!startsWith(arguments[i], "-")){ // check if not a flag e.g. -P
@@ -331,18 +298,21 @@ int main() {
         }
         else if (strcmp(arguments[0],"pwd") == 0){ // TODO: implement pwd flags/more complex scenarios
           redirect_arr = pwd(arguments, 0);
-          // TODO: put while loop here. while redirect_arr[0]!=0 do something and recalculate redirect_arr = pwd(...)
           if (redirect_arr[0]==1){ // if there is a redirect argument
             forward_redirection_loop(arguments, redirect_arr);
           }
           else{
             write(1, print_buffer, strlen(print_buffer));
           }
-          // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"echo") == 0){ // TODO: implement more complex echo scenarios from here https://kodekloud.com/blog/bash-echo-commands-examples/
-          echo(arguments);
-          write(1, print_buffer, strlen(print_buffer));
+          redirect_arr = echo(arguments);
+          if (redirect_arr[0]==1){ // if there is a redirect argument
+            forward_redirection_loop(arguments, redirect_arr);
+          }
+          else{
+            write(1, print_buffer, strlen(print_buffer));
+          }
           // TODO: add write to file descriptor (stdout, or a file if a redirection)
         }
         else if (strcmp(arguments[0],"exit") == 0){ // TODO: implement edge case of exit. ensure that if there are child processes, they end too
