@@ -87,109 +87,6 @@ void killLongRunningChildProcess(int signum)
     exit(0);
 }
 
-int* pwd(char *arguments[], int starting_indx){ // no flags implemented
-  int indx;
-  int* redirect = malloc(2*sizeof(int));
-  redirect[0] = 0;
-  redirect[1] = 0;
-  char current_dir[MAX_COMMAND_LINE_LEN];
-  getcwd(current_dir, MAX_COMMAND_LINE_LEN);
-  sprintf(print_buffer, "%s\n", current_dir);
-  char* token;
-  
-  for (indx=starting_indx; arguments[indx] != NULL; indx++){
-    token = trimString(arguments[indx]);
-    if (strcmp(token, ">")==0){
-      redirect[0] = 1;
-      redirect[1] = indx;
-    }
-  }
-  return redirect;
-}
-
-int* echo(char *arguments[]){
-  int i;
-  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
-  int* redirect = malloc(2*sizeof(int));
-  redirect[0] = 0;
-  redirect[1] = 0;
-  sprintf(print_buffer, "%s", arguments[1]);
-  for (i=2;arguments[i]!=NULL; i++){
-    if (strcmp(arguments[i], ">")==0){
-      redirect[0] = 1;
-      redirect[1] = i;
-      break;
-    }
-    sprintf(print_buffer + strlen(print_buffer)," %s", arguments[i]);
-  }
-  sprintf(print_buffer + strlen(print_buffer), "\n");
-  return redirect;
-}
-
-int * env(char * arguments[]){
-  int * redirect = malloc(2*sizeof(int));
-  char long_print_buffer[MAX_COMMAND_LINE_LEN*MAX_COMMAND_LINE_ARGS];
-  char * environment_variable;
-  char * environment_variable_value;
-  int indx;
-
-  if (arguments[1]!=NULL){
-    /* TODO: check if argument[1] == > in which case. do redirection. 
-    check if it is a variable name. if so, check if there is any future redirections.
-    edit redirect_arr accordingly;
-    */
-    environment_variable_value = getenv(arguments[1]);
-    if (environment_variable_value!=0){
-      if (strcmp(environment_variable_value,">") != 0){ // not a redirection, but rather the name of the environment variable to check
-        sprintf(print_buffer, "%s\n", environment_variable_value);
-      }
-      else{ // i.e. the command is "env > filename"
-          sprintf(long_print_buffer, "1: %s\n", environ[indx]);
-          for (indx=1; environ[indx]!=NULL; indx++) {
-            sprintf(long_print_buffer + strlen(long_print_buffer),"%d: %s\n", indx, environ[indx]);
-          }
-          // TODO: add write long_print_buffer to file descriptor (stdout, or a file if a redirection)
-          
-      }
-      write(1, print_buffer, strlen(print_buffer));
-  // TODO: add write to file descriptor (stdout, or a file if a redirection)
-    }
-  }
-  else{
-    sprintf(long_print_buffer, "1: %s\n", environ[indx]);
-    for (indx=1; environ[indx]!=NULL; indx++) {
-      sprintf(long_print_buffer + strlen(long_print_buffer),"%d: %s\n", indx, environ[indx]);
-    }
-    write(1, long_print_buffer, strlen(long_print_buffer));
-  }
-  return redirect;
-}
-
-int export(char *arguments[]){
-  // TODO: return -1 if error, 1 if no error
-  char * environment_variable;
-  char *  environment_variable_value;
-  int i,j;
-  int error_state = 1;
-  if (arguments[1]!=NULL){
-  environment_variable = strtok(arguments[1], "=");
-  i = strlen(environment_variable);
-  environment_variable[i] = '=';
-  j = strlen(arguments[1]);
-  if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
-    environment_variable = sliceString(arguments[1], 0, i-1);
-    environment_variable_value = sliceString(arguments[1], i+1, j);
-    i = setenv(environment_variable, environment_variable_value, 1);
-    if (i!=0){
-      sprintf(print_buffer, "Error occured: %d\n", i);
-      error_state = -1;
-      }
-    }
-  }
-  return error_state;
-}
-
-
 void forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
@@ -249,6 +146,140 @@ void forward_redirection_loop(char *arguments[], int * redirect_arr){
     }
   }
 }
+
+int* pwd(char *arguments[], int starting_indx){ // no flags implemented
+  int indx;
+  int* redirect = malloc(2*sizeof(int));
+  redirect[0] = 0;
+  redirect[1] = 0;
+  char current_dir[MAX_COMMAND_LINE_LEN];
+  getcwd(current_dir, MAX_COMMAND_LINE_LEN);
+  sprintf(print_buffer, "%s\n", current_dir);
+  char* token;
+  
+  for (indx=starting_indx; arguments[indx] != NULL; indx++){
+    token = trimString(arguments[indx]);
+    if (strcmp(token, ">")==0){
+      redirect[0] = 1;
+      redirect[1] = indx;
+    }
+  }
+  return redirect;
+}
+
+int* echo(char *arguments[]){
+  int i;
+  // TODO: return int array where first number is bool if redirect exists after applying flag. number 2 is pointed to arguments redirect if it exists
+  int* redirect = malloc(2*sizeof(int));
+  redirect[0] = 0;
+  redirect[1] = 0;
+  sprintf(print_buffer, "%s", arguments[1]);
+  for (i=2;arguments[i]!=NULL; i++){
+    if (strcmp(arguments[i], ">")==0){
+      redirect[0] = 1;
+      redirect[1] = i;
+      break;
+    }
+    sprintf(print_buffer + strlen(print_buffer)," %s", arguments[i]);
+  }
+  sprintf(print_buffer + strlen(print_buffer), "\n");
+  return redirect;
+}
+
+int * env(char * arguments[]){
+  int * redirect = malloc(2*sizeof(int));
+  redirect[0] = 0;
+  redirect[1] = 0;
+  char * environment_variable;
+  char * environment_variable_value;
+  int indx;
+
+  if (arguments[1]!=NULL){
+    /* TODO: check if argument[1] == > in which case. do redirection. 
+    check if it is a variable name. 
+    if so, check if there is any future redirections.
+    edit redirect_arr accordingly;
+    */
+    if (strcmp(arguments[1],">") != 0){ // not a redirection, but rather the name of the environment variable to check
+      environment_variable_value = getenv(arguments[1]);
+      sprintf(print_buffer, "%s\n", environment_variable_value);
+        // check if any more redirections
+        for (indx=2;arguments[indx]!=NULL; indx++){
+          if (strcmp(arguments[indx], ">")==0){
+            redirect[0] = 1;
+            redirect[1] = indx;
+            break;
+          }
+        }
+    }
+
+    
+    // environment_variable_value = getenv(arguments[1]);
+    // if (environment_variable_value!=0){
+    //   if (strcmp(environment_variable_value,">") != 0){ // not a redirection, but rather the name of the environment variable to check
+
+    //     sprintf(print_buffer, "%s\n", environment_variable_value);
+    //     // check if any more redirections
+    //     for (indx=2;arguments[indx]!=NULL; indx++){
+    //       if (strcmp(arguments[indx], ">")==0){
+    //         redirect[0] = 1;
+    //         redirect[1] = indx;
+    //         break;
+    //       }
+    //     }
+    //   }
+      else{ // i.e. the command is "env > filename"
+          redirect[0] = 1;
+          redirect[1] = 1; // indx of >
+          sprintf(print_buffer, "1: %s\n", environ[indx]);
+          for (indx=1; environ[indx]!=NULL; indx++) {
+            sprintf(print_buffer + strlen(print_buffer),"%d: %s\n", indx, environ[indx]);
+            
+          }
+
+          // TODO: add write print_buffer to file descriptor (stdout, or a file if a redirection)
+          
+      }
+      forward_redirection_loop(arguments, redirect);
+  // TODO: add write to file descriptor (stdout, or a file if a redirection)
+    
+  }
+  else{ // argument[1]==NULL, meaning the command is just env with no other tokens
+    sprintf(print_buffer, "1: %s\n", environ[indx]);
+    for (indx=1; environ[indx]!=NULL; indx++) {
+      sprintf(print_buffer + strlen(print_buffer),"%d: %s\n", indx, environ[indx]);
+    }
+    write(1, print_buffer, strlen(print_buffer));
+  }
+  return redirect;
+}
+
+int export(char *arguments[]){
+  // TODO: return -1 if error, 1 if no error
+  char * environment_variable;
+  char *  environment_variable_value;
+  int i,j;
+  int error_state = 1;
+  if (arguments[1]!=NULL){
+  environment_variable = strtok(arguments[1], "=");
+  i = strlen(environment_variable);
+  environment_variable[i] = '=';
+  j = strlen(arguments[1]);
+  if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
+    environment_variable = sliceString(arguments[1], 0, i-1);
+    environment_variable_value = sliceString(arguments[1], i+1, j);
+    i = setenv(environment_variable, environment_variable_value, 1);
+    if (i!=0){
+      sprintf(print_buffer, "Error occured: %d\n", i);
+      error_state = -1;
+      }
+    }
+  }
+  return error_state;
+}
+
+
+
 
 int main() {
     // Stores the string typed into the command line.
