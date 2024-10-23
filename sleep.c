@@ -1,3 +1,8 @@
+/*
+    Author: Mezisashe Ojuba
+    Written: 23 Oct 2024
+*/
+
 #include <stdio.h>
 #include<unistd.h>
 

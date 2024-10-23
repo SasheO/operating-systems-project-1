@@ -1,3 +1,8 @@
+/*
+    Author: Mezisashe Ojuba
+    Written: 23 Oct 2024
+*/
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
