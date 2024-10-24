@@ -257,7 +257,7 @@ int main() {
     // Stores the string typed into the command line.
     signal(SIGINT,signal_handler); //register alarm_handler to handle SIGALRM
     char command_line[MAX_COMMAND_LINE_LEN];
-    char cmd_bak[MAX_COMMAND_LINE_LEN];
+    char misc_buffer[MAX_COMMAND_LINE_LEN];
     char current_dir[MAX_COMMAND_LINE_LEN];
     char token_delimiter[] = " ";
     char *target_directory;
@@ -390,9 +390,16 @@ int main() {
             
           }
           else{ // child process
-            alarm(10);
-            // TODO: implement forward redirection for non-built in command
-            i = execvp(arguments[0], arguments);
+            sprintf(misc_buffer, "which %s > /dev/null 2>&1", arguments[0]);
+            if (system(token)) {
+              printf("%s command not found.\n", arguments[0]);
+                  // Command doesn't exist...
+            }
+            else{
+              alarm(10);
+              // TODO: implement forward redirection for non-built in command
+              i = execvp(arguments[0], arguments);
+            }
           }
         }
         
