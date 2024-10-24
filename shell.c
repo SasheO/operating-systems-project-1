@@ -269,26 +269,27 @@ int shell_command(char *arguments[]){
     }
   }
 
-  token = arguments[i+1];
-  if (token==NULL){
-    
-    perror("Invalid syntax\n");
-    return -1;
-  }
-    j = atoi( token ); // 
-  if (j == 0 && token[0] != '0'){   // token is not a number
-    file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC,  0777); // gave bad file descriptor error without 0777
-    if (file_desc==-1){
-      perror("error opening file:");
+  if (redirect_arr[0]==1)  {
+    token = arguments[i+1];
+    if (token==NULL){
+      perror("Invalid syntax:");
       return -1;
     }
-    dup2(file_desc, 1); // instead of writing to stdout (1), will write to file_desc
-  }
-  else { // token is a number e.g. 2 for stderr
-    if (j==0){ // TODO: 0 is for stdin. invalid input
+      j = atoi( token ); // 
+    if (j == 0 && token[0] != '0'){   // token is not a number
+      file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC,  0777); // gave bad file descriptor error without 0777
+      if (file_desc==-1){
+        perror("error opening file:");
+        return -1;
+      }
+      dup2(file_desc, 1); // instead of writing to stdout (1), will write to file_desc
     }
-    else{
-      dup2(j,1);
+    else { // token is a number e.g. 2 for stderr
+      if (j==0){ // TODO: 0 is for stdin. invalid input
+      }
+      else{
+        dup2(j,1);
+      }
     }
   }
   
@@ -440,8 +441,12 @@ int main() {
             }
             else{ // command exists
               alarm(10);
-              // TODO: implement forward redirection for non-built in command
+              // TODO: should shell_command function be the one to print error message or main? should shell_command just be returning error codes which main interprets? decide and change all the perror messages if needed
               i = shell_command(arguments);
+              pid = getpid();
+              if (pid!=root_parent_pid){
+                exit(0);
+              }
             }
           }
         }
