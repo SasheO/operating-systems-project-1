@@ -391,11 +391,10 @@ int main() {
           }
           else{ // child process
             sprintf(misc_buffer, "which %s > /dev/null 2>&1", arguments[0]);
-            if (system(token)) {
+            if (system(misc_buffer)) { // command doesn't exist e.g. typo
               printf("%s command not found.\n", arguments[0]);
-                  // Command doesn't exist...
             }
-            else{
+            else{ // command exists
               alarm(10);
               // TODO: implement forward redirection for non-built in command
               i = execvp(arguments[0], arguments);
