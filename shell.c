@@ -252,8 +252,9 @@ int export(char *arguments[]){
   return error_state;
 }
 
-int * shell_command(char *arguments[]){
-  int i;
+int shell_command(char *arguments[]){
+  // TODO: should this function be the one to print error message or its caller? should it just be returning error codes? decide and change all the perror messages if needed
+  int i, j, file_desc;
   char * token;
   int * redirect_arr = malloc(2*sizeof(int));
   redirect_arr[0] = 0;
@@ -263,9 +264,37 @@ int * shell_command(char *arguments[]){
     if (strcmp(token, ">")==0){
       redirect_arr[0] = 1;
       redirect_arr[1] = i;
+      arguments[i] = NULL;
+      break;
     }
   }
+
+  token = arguments[i+1];
+  if (token==NULL){
+    
+    perror("Invalid syntax\n");
+    return -1;
+  }
+    j = atoi( token ); // 
+  if (j == 0 && token[0] != '0'){   // token is not a number
+    file_desc = open (token, O_WRONLY|O_CREAT|O_TRUNC,  0777); // gave bad file descriptor error without 0777
+    if (file_desc==-1){
+      perror("error opening file:");
+      return -1;
+    }
+    dup2(file_desc, 1); // instead of writing to stdout (1), will write to file_desc
+  }
+  else { // token is a number e.g. 2 for stderr
+    if (j==0){ // TODO: 0 is for stdin. invalid input
+    }
+    else{
+      dup2(j,1);
+    }
+  }
+  
+
   i = execvp(arguments[0], arguments);
+  return i;
 }
 
 int main() {
@@ -412,7 +441,7 @@ int main() {
             else{ // command exists
               alarm(10);
               // TODO: implement forward redirection for non-built in command
-              redirect_arr = shell_command(arguments);
+              i = shell_command(arguments);
             }
           }
         }
