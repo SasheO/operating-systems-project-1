@@ -252,6 +252,21 @@ int export(char *arguments[]){
   return error_state;
 }
 
+int * shellCommand(char *arguments[]){
+  int i;
+  char * token;
+  int * redirect_arr = malloc(2*sizeof(int));
+  redirect_arr[0] = 0;
+  redirect_arr[1] = 0;
+  for (i=1; arguments[i] != NULL; i++){
+    token = trimString(arguments[i]);
+    if (strcmp(token, ">")==0){
+      redirect_arr[0] = 1;
+      redirect_arr[1] = i;
+    }
+  }
+  i = execvp(arguments[0], arguments);
+}
 
 int main() {
     // Stores the string typed into the command line.
@@ -397,7 +412,7 @@ int main() {
             else{ // command exists
               alarm(10);
               // TODO: implement forward redirection for non-built in command
-              i = execvp(arguments[0], arguments);
+              redirect_arr = shellCommand(arguments);
             }
           }
         }
