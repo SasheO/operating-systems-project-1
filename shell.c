@@ -26,7 +26,7 @@ pid_t root_parent_pid;
 bool redirect_stdout;
 char print_buffer[MAX_COMMAND_LINE_LEN];
 
-bool startsWith(const char *a, const char *b) // [1]
+bool starts_with(const char *a, const char *b) // [1]
 {
    if(strncmp(a, b, strlen(b)) == 0) return 1;
    return 0;
@@ -46,12 +46,12 @@ char *rtrim(char *s)
     return s;
 }
 
-char* trimString(char * s) // get rid of any white trailing white space and beginning or end
+char* trim_string(char * s) // get rid of any white trailing white space and beginning or end
 {
     return rtrim(ltrim(s));
 }
 
-char *sliceString(char *str, int start, int end) // [2]
+char *slice_string(char *str, int start, int end) // [2]
 {
 
     int i;
@@ -76,7 +76,7 @@ void signal_handler(int signum)
   }
 }
 
-void killLongRunningChildProcess(int signum)
+void kill_long_running_child_process(int signum)
 {
     // TODO: print out message that process is killed. figure out why this print message doesn't work!!!
     char buf[MAX_COMMAND_LINE_LEN];
@@ -87,7 +87,7 @@ void killLongRunningChildProcess(int signum)
     exit(0);
 }
 
-void forward_redirection(int j, char * token){
+void inbuilt_forward_redirection(int j, char * token){
   pid_t current_pid;
   int file_desc;
   current_pid = getpid();
@@ -123,7 +123,7 @@ void forward_redirection(int j, char * token){
   }
 }
 
-void forward_redirection_loop(char *arguments[], int * redirect_arr){
+void inbuilt_forward_redirection_loop(char *arguments[], int * redirect_arr){
   int i, num, pid;
   char * token;
   i = redirect_arr[1]+1; // i = index of next token after >
@@ -136,7 +136,7 @@ void forward_redirection_loop(char *arguments[], int * redirect_arr){
     num = atoi( token ); // 
     pid = fork();
     if (pid==0){ // child process
-      forward_redirection(num, token);
+      inbuilt_forward_redirection(num, token);
     }
     else if (pid<0){
       perror("Error forking:");
@@ -158,7 +158,7 @@ int* pwd(char *arguments[], int starting_indx){ // no flags implemented
   char* token;
   
   for (indx=starting_indx; arguments[indx] != NULL; indx++){
-    token = trimString(arguments[indx]);
+    token = trim_string(arguments[indx]);
     if (strcmp(token, ">")==0){
       redirect[0] = 1;
       redirect[1] = indx;
@@ -240,8 +240,8 @@ int export(char *arguments[]){
   environment_variable[i] = '=';
   j = strlen(arguments[1]);
   if (strlen(arguments[1])!=i){ // meaning there is a = in the argument
-    environment_variable = sliceString(arguments[1], 0, i-1);
-    environment_variable_value = sliceString(arguments[1], i+1, j);
+    environment_variable = slice_string(arguments[1], 0, i-1);
+    environment_variable_value = slice_string(arguments[1], i+1, j);
     i = setenv(environment_variable, environment_variable_value, 1);
     if (i!=0){
       sprintf(print_buffer, "Error occured: %d\n", i);
@@ -252,14 +252,14 @@ int export(char *arguments[]){
   return error_state;
 }
 
-int * shellCommand(char *arguments[]){
+int * shell_command(char *arguments[]){
   int i;
   char * token;
   int * redirect_arr = malloc(2*sizeof(int));
   redirect_arr[0] = 0;
   redirect_arr[1] = 0;
   for (i=1; arguments[i] != NULL; i++){
-    token = trimString(arguments[i]);
+    token = trim_string(arguments[i]);
     if (strcmp(token, ">")==0){
       redirect_arr[0] = 1;
       redirect_arr[1] = i;
@@ -320,11 +320,11 @@ int main() {
 
         while (p != NULL)
         {
-          if (!startsWith(p, "$")){ // if token not a variable
-            arguments[i++] = trimString(p);
+          if (!starts_with(p, "$")){ // if token not a variable
+            arguments[i++] = trim_string(p);
           }
           else{ // if token is a variable
-            p = getenv(trimString(sliceString(p, 1, strlen(p))));
+            p = getenv(trim_string(slice_string(p, 1, strlen(p))));
             if (p==NULL){p="";}
             arguments[i++] = p;
           }
@@ -336,7 +336,7 @@ int main() {
 
         if (strcmp(arguments[0],"cd") == 0){ 
           for (i=1; arguments[i] != NULL; i++){ // get directory from arguments
-              if (!startsWith(arguments[i], "-")){ // check if not a flag e.g. -P
+              if (!starts_with(arguments[i], "-")){ // check if not a flag e.g. -P
                   target_directory = arguments[i];
                   if (chdir(target_directory) != 0) { // try changing directory
                     sprintf(print_buffer, "%s is not a valid directory\n", target_directory);
@@ -350,7 +350,7 @@ int main() {
         else if (strcmp(arguments[0],"pwd") == 0){ 
           redirect_arr = pwd(arguments, 0);
           if (redirect_arr[0]==1){ // if there is a redirect argument
-            forward_redirection_loop(arguments, redirect_arr);
+            inbuilt_forward_redirection_loop(arguments, redirect_arr);
           }
           else{
             write(1, print_buffer, strlen(print_buffer));
@@ -359,7 +359,7 @@ int main() {
         else if (strcmp(arguments[0],"echo") == 0){ 
           redirect_arr = echo(arguments);
           if (redirect_arr[0]==1){ // if there is a redirect argument
-            forward_redirection_loop(arguments, redirect_arr);
+            inbuilt_forward_redirection_loop(arguments, redirect_arr);
           }
           else{
             write(1, print_buffer, strlen(print_buffer));
@@ -371,7 +371,7 @@ int main() {
         else if (strcmp(arguments[0],"env") == 0){
           redirect_arr = env(arguments);
           if (redirect_arr[0]==1){
-            forward_redirection_loop(arguments, redirect_arr);
+            inbuilt_forward_redirection_loop(arguments, redirect_arr);
           }
           else{
             write(1, print_buffer, strlen(print_buffer));
@@ -387,7 +387,7 @@ int main() {
           
         }
         else{
-          signal(SIGALRM,killLongRunningChildProcess); //register killLongRunningChildProcess to handle SIGALRM
+          signal(SIGALRM,kill_long_running_child_process); //register kill_long_running_child_process to handle SIGALRM
           
           pid = fork();
           if (pid < 0){
@@ -399,7 +399,7 @@ int main() {
           else if (pid>0){ // parent process
 
             for (i=0; arguments[i]!=NULL; i++){} // get i to be length of arguments array
-            if (trimString(arguments[i-1])!="&"){ // only wait for child process to end if command does not end with &
+            if (trim_string(arguments[i-1])!="&"){ // only wait for child process to end if command does not end with &
               wait(NULL);
             }
             
@@ -412,7 +412,7 @@ int main() {
             else{ // command exists
               alarm(10);
               // TODO: implement forward redirection for non-built in command
-              redirect_arr = shellCommand(arguments);
+              redirect_arr = shell_command(arguments);
             }
           }
         }
